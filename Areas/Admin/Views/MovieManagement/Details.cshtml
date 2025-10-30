@@ -1,0 +1,266 @@
+@model MoviesApp.Models.Phim
+
+@{
+    ViewData["Title"] = "Chi tiết phim - " + Model.TenPhim;
+    ViewData["Breadcrumb"] = "<li class='breadcrumb-item'><a href='/Admin'>Dashboard</a></li><li class='breadcrumb-item'><a href='/Admin/MovieManagement'>Quản lý Phim</a></li><li class='breadcrumb-item active'>Chi tiết phim</li>";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-film me-2"></i>Chi tiết phim: @Model.TenPhim</h2>
+    <div>
+        <a asp-action="Edit" asp-route-id="@Model.MaPhim" class="btn btn-warning me-2">
+            <i class="fas fa-edit me-2"></i>Chỉnh sửa
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4">
+        <!-- Movie Poster and Basic Info -->
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <img src="@(Model.AnhPhim ?? "/images/placeholder.jpg")" 
+                     alt="@Model.TenPhim" 
+                     class="img-fluid rounded mb-3" 
+                     style="max-height: 400px;"
+                     onerror="this.src='/images/placeholder.jpg'">
+                
+                <h4 class="card-title">@Model.TenPhim</h4>
+                
+                <div class="movie-badges mb-3">
+                    @if (Model.TheLoaiPhim != null)
+                    {
+                        <span class="badge bg-primary me-1">@Model.TheLoaiPhim.TenTL</span>
+                    }
+                    @if (Model.QuocGia != null)
+                    {
+                        <span class="badge bg-success me-1">@Model.QuocGia.TenQG</span>
+                    }
+                    @if (Model.DanhMuc != null)
+                    {
+                        <span class="badge bg-info me-1">@Model.DanhMuc.TenDM</span>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.DoTuoi))
+                    {
+                        <span class="badge bg-warning">@Model.DoTuoi</span>
+                    }
+                </div>
+
+                <div class="movie-stats">
+                    @if (Model.NamPhatHanh.HasValue)
+                    {
+                        <p><i class="fas fa-calendar me-2"></i><strong>Năm phát hành:</strong> @Model.NamPhatHanh</p>
+                    }
+                    @if (Model.ThoiLuong.HasValue)
+                    {
+                        <p><i class="fas fa-clock me-2"></i><strong>Thời lượng:</strong> @Model.ThoiLuong phút</p>
+                    }
+                    <p><i class="fas fa-plus me-2"></i><strong>Ngày thêm:</strong> @Model.NgayTao.ToString("dd/MM/yyyy")</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-bolt me-2"></i>Thao tác nhanh</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a asp-area="" asp-controller="TapPhim" asp-action="Index" asp-route-maPhim="@Model.MaPhim" 
+                       class="btn btn-success">
+                        <i class="fas fa-play-circle me-2"></i>Quản lý tập phim (@(Model.TapPhims?.Count() ?? 0) tập)
+                    </a>
+                    <a asp-area="" asp-controller="Phim" asp-action="Details" asp-route-id="@Model.MaPhim" 
+                       class="btn btn-outline-info">
+                        <i class="fas fa-external-link-alt me-2"></i>Xem trang công khai
+                    </a>
+                    <a asp-action="Edit" asp-route-id="@Model.MaPhim" class="btn btn-warning">
+                        <i class="fas fa-edit me-2"></i>Chỉnh sửa thông tin
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@Model.MaPhim" 
+                       class="btn btn-danger" 
+                       onclick="return confirm('Bạn có chắc chắn muốn xóa phim này?')">
+                        <i class="fas fa-trash me-2"></i>Xóa phim
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- Movie Details -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Thông tin chi tiết</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-item mb-3">
+                            <label class="fw-bold text-muted">Mã phim:</label>
+                            <p>@Model.MaPhim</p>
+                        </div>
+                        <div class="detail-item mb-3">
+                            <label class="fw-bold text-muted">Tên phim:</label>
+                            <p>@Model.TenPhim</p>
+                        </div>
+                        <div class="detail-item mb-3">
+                            <label class="fw-bold text-muted">Đạo diễn:</label>
+                            <p>@(Model.DaoDien ?? "Chưa cập nhật")</p>
+                        </div>
+                        <div class="detail-item mb-3">
+                            <label class="fw-bold text-muted">Diễn viên:</label>
+                            <p>@(Model.DienVien ?? "Chưa cập nhật")</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item mb-3">
+                            <label class="fw-bold text-muted">Danh mục:</label>
+                            <p>@(Model.DanhMuc?.TenDM ?? "Chưa phân loại")</p>
+                        </div>
+                        <div class="detail-item mb-3">
+                            <label class="fw-bold text-muted">Thể loại:</label>
+                            <p>@(Model.TheLoaiPhim?.TenTL ?? "Chưa phân loại")</p>
+                        </div>
+                        <div class="detail-item mb-3">
+                            <label class="fw-bold text-muted">Quốc gia:</label>
+                            <p>@(Model.QuocGia?.TenQG ?? "Chưa xác định")</p>
+                        </div>
+                        <div class="detail-item mb-3">
+                            <label class="fw-bold text-muted">Độ tuổi:</label>
+                            <p>@(Model.DoTuoi ?? "Chưa xếp hạng")</p>
+                        </div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.MoTa))
+                {
+                    <div class="detail-item">
+                        <label class="fw-bold text-muted">Mô tả:</label>
+                        <p class="mt-2">@Model.MoTa</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Episodes List -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-play-circle me-2"></i>Danh sách tập phim</h5>
+                <a asp-area="" asp-controller="TapPhim" asp-action="Create" asp-route-maPhim="@Model.MaPhim" 
+                   class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus me-1"></i>Thêm tập mới
+                </a>
+            </div>
+            <div class="card-body">
+                @if (Model.TapPhims != null && Model.TapPhims.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Tập</th>
+                                    <th>Tên tập</th>
+                                    <th>Thời lượng</th>
+                                    <th>Ngày thêm</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var tap in Model.TapPhims.OrderBy(t => t.SoTap))
+                                {
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-primary">Tập @tap.SoTap</span>
+                                        </td>
+                                        <td>@tap.TenTap</td>
+                                        <td>@(tap.ThoiLuong?.ToString() ?? "N/A") phút</td>
+                                        <td>@tap.NgayThem.ToString("dd/MM/yyyy")</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a asp-area="" asp-controller="TapPhim" asp-action="Edit" asp-route-id="@tap.MaTap" 
+                                                   class="btn btn-outline-warning" title="Chỉnh sửa">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a asp-area="" asp-controller="TapPhim" asp-action="Delete" asp-route-id="@tap.MaTap" 
+                                                   class="btn btn-outline-danger" title="Xóa">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-play-circle fa-3x text-muted mb-3"></i>
+                        <h6 class="text-muted">Chưa có tập phim nào</h6>
+                        <p class="text-muted mb-3">Hãy thêm tập phim đầu tiên cho bộ phim này</p>
+                        <a asp-area="" asp-controller="TapPhim" asp-action="Create" asp-route-maPhim="@Model.MaPhim" 
+                           class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Thêm tập đầu tiên
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border: none;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .movie-badges {
+        margin-bottom: 1rem;
+    }
+
+    .movie-badges .badge {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+
+    .movie-stats p {
+        margin-bottom: 0.5rem;
+        text-align: left;
+    }
+
+    .detail-item label {
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+
+    .detail-item p {
+        margin-bottom: 0;
+        font-size: 1rem;
+        color: #495057;
+    }
+
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 0.9rem;
+    }
+</style>

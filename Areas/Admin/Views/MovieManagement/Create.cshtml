@@ -1,0 +1,298 @@
+@model MoviesApp.Models.Phim
+
+@{
+    ViewData["Title"] = "Thêm phim mới";
+    ViewData["Breadcrumb"] = "<li class='breadcrumb-item'><a href='/Admin'>Dashboard</a></li><li class='breadcrumb-item'><a href='/Admin/MovieManagement'>Quản lý Phim</a></li><li class='breadcrumb-item active'>Thêm phim mới</li>";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-plus-circle me-2"></i>Thêm phim mới</h2>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Thông tin phim</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label asp-for="TenPhim" class="form-label required">Tên phim</label>
+                                <input asp-for="TenPhim" class="form-control" placeholder="Nhập tên phim" />
+                                <span asp-validation-for="TenPhim" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label asp-for="NamPhatHanh" class="form-label">Năm phát hành</label>
+                                <input asp-for="NamPhatHanh" class="form-control" type="number" min="1900" max="2030" />
+                                <span asp-validation-for="NamPhatHanh" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label asp-for="MaDM" class="form-label required">Danh mục</label>
+                                <select asp-for="MaDM" class="form-select" asp-items="ViewBag.MaDM">
+                                    <option value="">-- Chọn danh mục --</option>
+                                </select>
+                                <span asp-validation-for="MaDM" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label asp-for="MaTL" class="form-label required">Thể loại</label>
+                                <select asp-for="MaTL" class="form-select" asp-items="ViewBag.MaTL">
+                                    <option value="">-- Chọn thể loại --</option>
+                                </select>
+                                <span asp-validation-for="MaTL" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label asp-for="MaQG" class="form-label required">Quốc gia</label>
+                                <select asp-for="MaQG" class="form-select" asp-items="ViewBag.MaQG">
+                                    <option value="">-- Chọn quốc gia --</option>
+                                </select>
+                                <span asp-validation-for="MaQG" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="DaoDien" class="form-label">Đạo diễn</label>
+                                <input asp-for="DaoDien" class="form-control" placeholder="Tên đạo diễn" />
+                                <span asp-validation-for="DaoDien" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="DienVien" class="form-label">Diễn viên</label>
+                                <input asp-for="DienVien" class="form-control" placeholder="Danh sách diễn viên chính" />
+                                <span asp-validation-for="DienVien" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="MoTa" class="form-label">Mô tả phim</label>
+                        <textarea asp-for="MoTa" class="form-control" rows="4" placeholder="Mô tả nội dung phim"></textarea>
+                        <span asp-validation-for="MoTa" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="AnhPhim" class="form-label">URL Poster phim</label>
+                        <input asp-for="AnhPhim" class="form-control" placeholder="https://example.com/poster.jpg" />
+                        <span asp-validation-for="AnhPhim" class="text-danger"></span>
+                        <div class="form-text">Nhập URL hình ảnh poster của phim</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="ThoiLuong" class="form-label">Thời lượng (phút)</label>
+                                <input asp-for="ThoiLuong" class="form-control" type="number" min="1" placeholder="90" />
+                                <span asp-validation-for="ThoiLuong" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="DoTuoi" class="form-label">Độ tuổi</label>
+                                <select asp-for="DoTuoi" class="form-select">
+                                    <option value="">-- Chọn độ tuổi --</option>
+                                    <option value="P">P - Mọi lứa tuổi</option>
+                                    <option value="T13">T13 - Từ 13 tuổi</option>
+                                    <option value="T16">T16 - Từ 16 tuổi</option>
+                                    <option value="T18">T18 - Từ 18 tuổi</option>
+                                </select>
+                                <span asp-validation-for="DoTuoi" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a asp-action="Index" class="btn btn-outline-secondary me-md-2">
+                            <i class="fas fa-times me-2"></i>Hủy
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Lưu phim
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- OMDb Integration Panel -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-download me-2"></i>Tải dữ liệu từ OMDb</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">IMDb ID</label>
+                    <div class="input-group">
+                        <input type="text" id="imdbId" class="form-control" placeholder="tt1234567">
+                        <button type="button" id="loadFromOMDb" class="btn btn-outline-primary">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                    <div class="form-text">Nhập IMDb ID để tự động điền thông tin phim</div>
+                </div>
+                <div id="omdbResult" class="d-none">
+                    <!-- OMDb result will be displayed here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Panel -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-eye me-2"></i>Xem trước</h6>
+            </div>
+            <div class="card-body">
+                <div id="posterPreview" class="text-center mb-3">
+                    <img id="previewImage" src="/images/placeholder.jpg" 
+                         alt="Preview" class="img-fluid rounded" style="max-height: 300px;">
+                </div>
+                <div id="movieInfo">
+                    <h6 id="previewTitle">Tên phim sẽ hiển thị ở đây</h6>
+                    <p id="previewDescription" class="text-muted small">Mô tả phim sẽ hiển thị ở đây</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    .card {
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border: none;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    #previewImage {
+        border: 2px solid #e9ecef;
+        transition: border-color 0.2s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .btn {
+        border-radius: 6px;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Live preview functionality
+            $('#TenPhim').on('input', function() {
+                $('#previewTitle').text($(this).val() || 'Tên phim sẽ hiển thị ở đây');
+            });
+
+            $('#MoTa').on('input', function() {
+                $('#previewDescription').text($(this).val() || 'Mô tả phim sẽ hiển thị ở đây');
+            });
+
+            $('#AnhPhim').on('input', function() {
+                var url = $(this).val();
+                if (url) {
+                    $('#previewImage').attr('src', url).on('error', function() {
+                        $(this).attr('src', '/images/placeholder.jpg');
+                    });
+                } else {
+                    $('#previewImage').attr('src', '/images/placeholder.jpg');
+                }
+            });
+
+            // OMDb integration
+            $('#loadFromOMDb').click(function() {
+                var imdbId = $('#imdbId').val().trim();
+                if (!imdbId) {
+                    alert('Vui lòng nhập IMDb ID');
+                    return;
+                }
+
+                var button = $(this);
+                button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+                $.post('@Url.Action("LoadFromOMDb")', { imdbId: imdbId })
+                    .done(function(response) {
+                        if (response.success && response.data) {
+                            var data = response.data;
+                            
+                            // Fill form fields
+                            if (data.Title) $('#TenPhim').val(data.Title).trigger('input');
+                            if (data.Year) $('#NamPhatHanh').val(data.Year);
+                            if (data.Director) $('#DaoDien').val(data.Director);
+                            if (data.Actors) $('#DienVien').val(data.Actors);
+                            if (data.Plot && data.Plot !== 'N/A') $('#MoTa').val(data.Plot).trigger('input');
+                            if (data.Poster && data.Poster !== 'N/A') $('#AnhPhim').val(data.Poster).trigger('input');
+                            if (data.Runtime) {
+                                var runtime = parseInt(data.Runtime.replace(/\D/g, ''));
+                                if (runtime) $('#ThoiLuong').val(runtime);
+                            }
+
+                            $('#omdbResult').removeClass('d-none').html(`
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    Đã tải thành công dữ liệu từ OMDb!
+                                </div>
+                            `);
+                        } else {
+                            $('#omdbResult').removeClass('d-none').html(`
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    ${response.message || 'Không tìm thấy dữ liệu'}
+                                </div>
+                            `);
+                        }
+                    })
+                    .fail(function() {
+                        $('#omdbResult').removeClass('d-none').html(`
+                            <div class="alert alert-danger">
+                                <i class="fas fa-times-circle me-2"></i>
+                                Có lỗi xảy ra khi tải dữ liệu
+                            </div>
+                        `);
+                    })
+                    .always(function() {
+                        button.prop('disabled', false).html('<i class="fas fa-download"></i>');
+                    });
+            });
+
+            // Auto-hide alerts
+            setTimeout(function() {
+                $('#omdbResult .alert').fadeOut();
+            }, 5000);
+        });
+    </script>
+}
