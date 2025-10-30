@@ -1,0 +1,198 @@
+@{
+    ViewData["Title"] = "Quản lý Database";
+    ViewData["Breadcrumb"] = "<li class='breadcrumb-item'><a href='/Admin'>Dashboard</a></li><li class='breadcrumb-item'><a href='/Admin/Settings'>Cài đặt</a></li><li class='breadcrumb-item active'>Database</li>";
+}
+
+<div class="row">
+    <!-- Database Status -->
+    <div class="col-lg-8 mb-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="mb-0"><i class="fas fa-database me-2"></i>Trạng thái Database</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Trạng thái kết nối:</strong></td>
+                                <td><span class="badge bg-success">Đã kết nối</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Server:</strong></td>
+                                <td>Local SQL Server</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Database:</strong></td>
+                                <td>MoviesAppDb</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Provider:</strong></td>
+                                <td>Microsoft SQL Server</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Phiên bản:</strong></td>
+                                <td>SQL Server 2019</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Kích thước DB:</strong></td>
+                                <td>~150 MB</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Lần cập nhật cuối:</strong></td>
+                                <td>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Auto-growth:</strong></td>
+                                <td><span class="badge bg-info">Enabled</span></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Database Actions -->
+    <div class="col-lg-4 mb-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="mb-0"><i class="fas fa-tools me-2"></i>Thao tác Database</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-info" onclick="testConnection()">
+                        <i class="fas fa-plug me-2"></i>Kiểm tra kết nối
+                    </button>
+                    <button class="btn btn-warning" onclick="updateDatabase()">
+                        <i class="fas fa-sync me-2"></i>Cập nhật Schema
+                    </button>
+                    <button class="btn btn-primary" onclick="optimizeDatabase()">
+                        <i class="fas fa-tachometer-alt me-2"></i>Tối ưu hóa
+                    </button>
+                    <button class="btn btn-secondary" onclick="viewTables()">
+                        <i class="fas fa-table me-2"></i>Xem Tables
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Database Tables -->
+<div class="row">
+    <div class="col-12">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="mb-0"><i class="fas fa-table me-2"></i>Danh sách Tables</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tên Table</th>
+                                <th>Số dòng</th>
+                                <th>Kích thước</th>
+                                <th>Ngày tạo</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><i class="fas fa-table me-2"></i>Phim</td>
+                                <td><span class="badge bg-info">1,250</span></td>
+                                <td>25 MB</td>
+                                <td>25/06/2025</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewTableData('Phim')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-table me-2"></i>TapPhim</td>
+                                <td><span class="badge bg-info">5,600</span></td>
+                                <td>45 MB</td>
+                                <td>25/06/2025</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewTableData('TapPhim')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-table me-2"></i>NguoiDung</td>
+                                <td><span class="badge bg-success">2,840</span></td>
+                                <td>12 MB</td>
+                                <td>25/06/2025</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewTableData('NguoiDung')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-table me-2"></i>BinhLuan</td>
+                                <td><span class="badge bg-warning">8,920</span></td>
+                                <td>18 MB</td>
+                                <td>25/06/2025</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewTableData('BinhLuan')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-table me-2"></i>LichSuXem</td>
+                                <td><span class="badge bg-warning">15,670</span></td>
+                                <td>32 MB</td>
+                                <td>25/06/2025</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewTableData('LichSuXem')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function testConnection() {
+            // Simulate connection test
+            setTimeout(function() {
+                alert('Kết nối database thành công!');
+            }, 1000);
+        }
+
+        function updateDatabase() {
+            if (confirm('Bạn có chắc chắn muốn cập nhật schema database?')) {
+                alert('Tính năng đang được phát triển');
+            }
+        }
+
+        function optimizeDatabase() {
+            if (confirm('Thao tác này có thể mất vài phút. Bạn có muốn tiếp tục?')) {
+                alert('Tính năng đang được phát triển');
+            }
+        }
+
+        function viewTables() {
+            alert('Tính năng đang được phát triển');
+        }
+
+        function viewTableData(tableName) {
+            alert('Xem dữ liệu table: ' + tableName + '\nTính năng đang được phát triển');
+        }
+    </script>
+}

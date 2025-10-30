@@ -1,0 +1,430 @@
+@{
+    ViewData["Title"] = "🐛 Test Video Player - Add Sample Data";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h3>🐛 Debug Video Player - Add Test Data</h3>
+                    <p class="text-muted">Thêm dữ liệu test để debug video player issue</p>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- Quick Add Test Episodes -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>📺 Add Test Episodes</h5>
+                            
+                            <form id="addTestEpisodeForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Select Movie</label>
+                                    <select id="movieSelect" class="form-select" required>
+                                        <option value="">Select a movie...</option>
+                                        <option value="PHIM001">Avengers: Endgame</option>
+                                        <option value="PHIM002">Spider-Man: No Way Home</option>
+                                        <option value="PHIM003">Attack on Titan</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Episode Type</label>
+                                    <select id="episodeType" class="form-select" required>
+                                        <option value="trailer">Trailer (Episode 0)</option>
+                                        <option value="episode1">Episode 1</option>
+                                        <option value="episode2">Episode 2</option>
+                                        <option value="custom">Custom Episode</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3" id="customEpisodeDiv" style="display: none;">
+                                    <label class="form-label">Episode Number</label>
+                                    <input type="number" id="customEpisodeNumber" class="form-control" min="0" max="100">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Video URL Type</label>
+                                    <select id="videoUrlType" class="form-select" required>
+                                        <option value="youtube">YouTube (Embedded)</option>
+                                        <option value="sample">Sample Direct Video</option>
+                                        <option value="custom">Custom URL</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3" id="customUrlDiv" style="display: none;">
+                                    <label class="form-label">Custom Video URL</label>
+                                    <input type="url" id="customVideoUrl" class="form-control" placeholder="https://...">
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus me-1"></i>Add Test Episode
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5>🔧 Test Video URLs</h5>
+                            
+                            <div class="mb-3">
+                                <h6>YouTube Test URLs:</h6>
+                                <ul class="list-unstyled">
+                                    <li><small><code>https://www.youtube.com/watch?v=dQw4w9WgXcQ</code></small></li>
+                                    <li><small><code>https://youtu.be/dQw4w9WgXcQ</code></small></li>
+                                </ul>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Sample Direct Video URLs:</h6>
+                                <ul class="list-unstyled">
+                                    <li><small><code>https://sample-videos.com/zip/10/mp4/SampleVideo_720x480_1mb.mp4</code></small></li>
+                                    <li><small><code>https://file-examples.com/storage/fe68c0b3d4c80b9fc1906ac/2017/10/file_example_MP4_480_1_5MG.mp4</code></small></li>
+                                </ul>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-info-circle me-1"></i>Debug Steps:</h6>
+                                <ol class="mb-0">
+                                    <li>Add test episode using form</li>
+                                    <li>Go to movie details page</li>
+                                    <li>Click on episode to play</li>
+                                    <li>Check browser console for errors</li>
+                                    <li>Check Network tab for video requests</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Current Episodes List -->
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <h5>📋 Current Episodes in Database</h5>
+                            <div id="currentEpisodesList">
+                                <div class="text-center py-3">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading episodes...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Video Player Test -->
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <h5>🎬 Test Video Player</h5>
+                            <div class="mb-3">
+                                <label class="form-label">Test Video URL:</label>
+                                <input type="text" id="testVideoUrl" class="form-control" 
+                                       value="https://www.youtube.com/watch?v=dQw4w9WgXcQ" 
+                                       placeholder="Enter video URL to test">
+                                <button class="btn btn-outline-primary mt-2" onclick="testVideoPlayer()">
+                                    <i class="fas fa-play me-1"></i>Test Video Player
+                                </button>
+                            </div>
+                            
+                            <!-- Video Player Container -->
+                            <div id="videoPlayerTestContainer" style="display: none;">
+                                <div class="video-player-wrapper" style="background: #000; aspect-ratio: 16/9; border-radius: 8px;">
+                                    <div id="testVideoPlayer"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Video URLs for testing
+        const testVideoUrls = {
+            youtube: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            sample: 'https://sample-videos.com/zip/10/mp4/SampleVideo_720x480_1mb.mp4',
+            sample2: 'https://file-examples.com/storage/fe68c0b3d4c80b9fc1906ac/2017/10/file_example_MP4_480_1_5MG.mp4'
+        };
+        
+        // Episode data templates
+        const episodeTemplates = {
+            trailer: { number: 0, title: 'Trailer', duration: 3 },
+            episode1: { number: 1, title: 'Episode 1', duration: 45 },
+            episode2: { number: 2, title: 'Episode 2', duration: 45 }
+        };
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            setupFormHandlers();
+            loadCurrentEpisodes();
+        });
+        
+        function setupFormHandlers() {
+            // Episode type change handler
+            document.getElementById('episodeType').addEventListener('change', function() {
+                const customDiv = document.getElementById('customEpisodeDiv');
+                customDiv.style.display = this.value === 'custom' ? 'block' : 'none';
+            });
+            
+            // Video URL type change handler
+            document.getElementById('videoUrlType').addEventListener('change', function() {
+                const customDiv = document.getElementById('customUrlDiv');
+                customDiv.style.display = this.value === 'custom' ? 'block' : 'none';
+            });
+            
+            // Form submission
+            document.getElementById('addTestEpisodeForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                addTestEpisode();
+            });
+        }
+        
+        async function addTestEpisode() {
+            const movieId = document.getElementById('movieSelect').value;
+            const episodeType = document.getElementById('episodeType').value;
+            const videoUrlType = document.getElementById('videoUrlType').value;
+            
+            if (!movieId) {
+                alert('Please select a movie');
+                return;
+            }
+            
+            // Generate episode data
+            let episodeData;
+            if (episodeType === 'custom') {
+                const customNumber = document.getElementById('customEpisodeNumber').value;
+                episodeData = {
+                    number: parseInt(customNumber) || 1,
+                    title: `Episode ${customNumber}`,
+                    duration: 45
+                };
+            } else {
+                episodeData = episodeTemplates[episodeType];
+            }
+            
+            // Generate video URL
+            let videoUrl;
+            if (videoUrlType === 'custom') {
+                videoUrl = document.getElementById('customVideoUrl').value;
+                if (!videoUrl) {
+                    alert('Please enter a custom video URL');
+                    return;
+                }
+            } else {
+                videoUrl = testVideoUrls[videoUrlType];
+            }
+            
+            // Create episode object
+            const tapPhim = {
+                MaPhim: movieId,
+                SoTapThuTu: episodeData.number,
+                TenTap: episodeData.title,
+                ChiTiet: `Test episode created for debugging video player - ${new Date().toLocaleString()}`,
+                VideoUrl: videoUrl,
+                ThoiLuongTap: episodeData.duration,
+                NgayPhatHanh: new Date().toISOString()
+            };
+            
+            try {
+                showNotification('Creating test episode...', 'info');
+                
+                // Call API to create episode
+                const response = await fetch('/Admin/TapPhim/Create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify(tapPhim)
+                });
+                
+                if (response.ok) {
+                    showNotification('✅ Test episode created successfully!', 'success');
+                    loadCurrentEpisodes();
+                    
+                    // Reset form
+                    document.getElementById('addTestEpisodeForm').reset();
+                } else {
+                    const error = await response.text();
+                    showNotification(`❌ Error creating episode: ${error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function loadCurrentEpisodes() {
+            try {
+                const response = await fetch('/api/PhimApi');
+                if (response.ok) {
+                    const movies = await response.json();
+                    displayEpisodesList(movies);
+                } else {
+                    document.getElementById('currentEpisodesList').innerHTML = 
+                        '<div class="alert alert-warning">Could not load episodes data</div>';
+                }
+            } catch (error) {
+                console.error('Error loading episodes:', error);
+                document.getElementById('currentEpisodesList').innerHTML = 
+                    '<div class="alert alert-danger">Error loading episodes: ' + error.message + '</div>';
+            }
+        }
+        
+        function displayEpisodesList(movies) {
+            let html = '';
+            
+            movies.forEach(movie => {
+                if (movie.tapPhims && movie.tapPhims.length > 0) {
+                    html += `
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h6 class="mb-0">${movie.tenPhim} (${movie.maPhim})</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                    `;
+                    
+                    movie.tapPhims.forEach(episode => {
+                        html += `
+                            <div class="col-md-6 col-lg-4 mb-2">
+                                <div class="border rounded p-2">
+                                    <strong>Tập ${episode.soTapThuTu}</strong>: ${episode.tenTap || 'No title'}
+                                    <br><small class="text-muted">ID: ${episode.maTap}</small>
+                                    <br><small class="text-muted">URL: ${episode.videoUrl ? '✅ Has URL' : '❌ No URL'}</small>
+                                    <br>
+                                    <a href="/Phim/Details/${movie.maPhim}?episode=${episode.soTapThuTu}" 
+                                       class="btn btn-sm btn-outline-primary" target="_blank">
+                                        <i class="fas fa-play me-1"></i>Test Play
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            if (!html) {
+                html = '<div class="alert alert-warning">No movies with episodes found in database</div>';
+            }
+            
+            document.getElementById('currentEpisodesList').innerHTML = html;
+        }
+        
+        function testVideoPlayer() {
+            const testUrl = document.getElementById('testVideoUrl').value;
+            if (!testUrl) {
+                alert('Please enter a video URL to test');
+                return;
+            }
+            
+            const container = document.getElementById('videoPlayerTestContainer');
+            const playerDiv = document.getElementById('testVideoPlayer');
+            
+            // Show container
+            container.style.display = 'block';
+            
+            // Clear previous content
+            playerDiv.innerHTML = '';
+            
+            // Determine video type and create appropriate player
+            if (testUrl.includes('youtube.com') || testUrl.includes('youtu.be')) {
+                // YouTube video
+                let embedUrl = testUrl;
+                if (testUrl.includes('watch?v=')) {
+                    const videoId = testUrl.split('v=')[1].split('&')[0];
+                    embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                } else if (testUrl.includes('youtu.be/')) {
+                    const videoId = testUrl.split('youtu.be/')[1].split('?')[0];
+                    embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                }
+                
+                playerDiv.innerHTML = `
+                    <iframe width="100%" height="100%" 
+                            src="${embedUrl}" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                    </iframe>
+                `;
+            } else if (testUrl.includes('vimeo.com')) {
+                // Vimeo video
+                const videoId = testUrl.split('vimeo.com/')[1].split('?')[0];
+                const embedUrl = `https://player.vimeo.com/video/${videoId}`;
+                
+                playerDiv.innerHTML = `
+                    <iframe width="100%" height="100%" 
+                            src="${embedUrl}" 
+                            frameborder="0" 
+                            allow="autoplay; fullscreen; picture-in-picture" 
+                            allowfullscreen>
+                    </iframe>
+                `;
+            } else {
+                // Direct video file
+                playerDiv.innerHTML = `
+                    <video width="100%" height="100%" controls>
+                        <source src="${testUrl}" type="video/mp4">
+                        <source src="${testUrl}" type="video/webm">
+                        Your browser does not support the video tag.
+                    </video>
+                `;
+            }
+            
+            showNotification('🎬 Video player test loaded!', 'success');
+        }
+        
+        function showNotification(message, type) {
+            const alertClass = type === 'success' ? 'alert-success' : 
+                              type === 'error' ? 'alert-danger' : 'alert-info';
+            
+            const notification = document.createElement('div');
+            notification.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.zIndex = '9999';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 5000);
+        }
+    </script>
+}
+
+<style>
+    .video-player-wrapper {
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .video-player-wrapper iframe,
+    .video-player-wrapper video {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+    
+    .card {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .alert {
+        border-radius: 8px;
+    }
+</style>

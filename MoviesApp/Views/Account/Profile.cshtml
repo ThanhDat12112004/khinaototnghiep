@@ -1,0 +1,366 @@
+@model UserProfileViewModel
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
+}
+
+<div class="profile-container">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <div class="col-lg-3 col-md-4">
+                <div class="profile-sidebar">
+                    <div class="profile-header">
+                        <div class="profile-avatar">
+                            @if (!string.IsNullOrEmpty(Model.Avatar))
+                            {
+                                <img src="@Model.Avatar" alt="Avatar" class="avatar-image" />
+                            }
+                            else
+                            {
+                                <div class="avatar-placeholder">
+                                    @(Model.FullName?.Substring(0, 1).ToUpper() ?? "U")
+                                </div>
+                            }
+                        </div>
+                        <h3 class="profile-name">@Model.FullName</h3>
+                        <p class="profile-email">@Model.Email</p>
+                        <span class="profile-role">@Model.Role</span>
+                    </div>
+                    
+                    <nav class="profile-nav">
+                        <a href="#profile-info" class="nav-item active" data-section="profile-info">
+                            <i class="fas fa-user"></i>
+                            Thông tin cá nhân
+                        </a>
+                        <a href="#security" class="nav-item" data-section="security">
+                            <i class="fas fa-shield-alt"></i>
+                            Bảo mật
+                        </a>
+                        <a href="#watchlist" class="nav-item" data-section="watchlist">
+                            <i class="fas fa-heart"></i>
+                            Danh sách yêu thích
+                        </a>
+                        <a href="#watch-history" class="nav-item" data-section="watch-history">
+                            <i class="fas fa-history"></i>
+                            Lịch sử xem
+                        </a>
+                        <a href="#statistics" class="nav-item" data-section="statistics">
+                            <i class="fas fa-chart-bar"></i>
+                            Thống kê
+                        </a>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-lg-9 col-md-8">
+                <div class="profile-main">
+                    <!-- Profile Information Section -->
+                    <div id="profile-info" class="section-content active">
+                        <h2 class="section-title">
+                            <i class="fas fa-user"></i>
+                            Thông tin cá nhân
+                        </h2>
+                        
+                        <form class="profile-form" method="post" asp-action="UpdateProfile">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Họ và tên</label>
+                                        <input type="text" class="form-control" asp-for="FullName" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" asp-for="Email" readonly />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Số điện thoại</label>
+                                        <input type="tel" class="form-control" asp-for="PhoneNumber" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Ngày sinh</label>
+                                        <input type="date" class="form-control" name="DateOfBirth" />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Ghi chú</label>
+                                <textarea class="form-control" name="Notes" rows="4" placeholder="Ghi chú về tài khoản..."></textarea>
+                            </div>
+                            
+                            <div class="d-flex gap-3">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Lưu thay đổi
+                                </button>
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="fas fa-undo"></i>
+                                    Đặt lại
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Security Section -->
+                    <div id="security" class="section-content">
+                        <h2 class="section-title">
+                            <i class="fas fa-shield-alt"></i>
+                            Bảo mật tài khoản
+                        </h2>
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <form class="profile-form" method="post" asp-action="ChangePassword">
+                                    <div class="form-group">
+                                        <label class="form-label">Mật khẩu hiện tại</label>
+                                        <input type="password" class="form-control" name="CurrentPassword" required />
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Mật khẩu mới</label>
+                                        <input type="password" class="form-control" name="NewPassword" required />
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Xác nhận mật khẩu mới</label>
+                                        <input type="password" class="form-control" name="ConfirmPassword" required />
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-key"></i>
+                                        Đổi mật khẩu
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Watchlist Section -->
+                    <div id="watchlist" class="section-content">
+                        <h2 class="section-title">
+                            <i class="fas fa-heart"></i>
+                            Danh sách yêu thích (@(Model.FavoriteMovies?.Count() ?? 0) phim)
+                        </h2>
+                        
+                        @if (Model.FavoriteMovies?.Any() == true)
+                        {
+                            <div class="movie-grid">
+                                @foreach (var movie in Model.FavoriteMovies)
+                                {
+                                    <div class="movie-card">
+                                        <div class="movie-poster">
+                                            <img src="@(movie.AnhPhim ?? "/images/no-poster.jpg")" alt="@movie.TenPhim" loading="lazy" />
+                                            <div class="movie-overlay">
+                                                <div class="play-button">
+                                                    <i class="fas fa-play"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="movie-info">
+                                            <h4 class="movie-title">@movie.TenPhim</h4>
+                                            <div class="movie-meta">
+                                                <span>@movie.NamPhatHanh</span>
+                                                @if (movie.DiemImdb.HasValue)
+                                                {
+                                                    <span class="movie-rating">
+                                                        <i class="fas fa-star"></i>
+                                                        @movie.DiemImdb.Value.ToString("F1")
+                                                    </span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <i class="fas fa-heart-broken"></i>
+                                <h3>Chưa có phim yêu thích</h3>
+                                <p>Hãy thêm những bộ phim bạn yêu thích vào danh sách này</p>
+                                <a href="@Url.Action("Index", "Phim")" class="btn btn-primary mt-3">
+                                    <i class="fas fa-search"></i>
+                                    Khám phá phim
+                                </a>
+                            </div>
+                        }
+                    </div>
+                    
+                    <!-- Watch History Section -->
+                    <div id="watch-history" class="section-content">
+                        <h2 class="section-title">
+                            <i class="fas fa-history"></i>
+                            Lịch sử xem (@(Model.WatchHistory?.Count() ?? 0) phim)
+                        </h2>
+                        
+                        @if (Model.WatchHistory?.Any() == true)
+                        {
+                            <div class="movie-grid">
+                                @foreach (var history in Model.WatchHistory.Take(12))
+                                {
+                                    <div class="movie-card">
+                                        <div class="movie-poster">
+                                            <img src="@(history.Phim?.AnhPhim ?? "/images/no-poster.jpg")" alt="@history.Phim?.TenPhim" loading="lazy" />
+                                            <div class="movie-overlay">
+                                                <div class="play-button">
+                                                    <i class="fas fa-play"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="movie-info">
+                                            <h4 class="movie-title">@history.Phim?.TenPhim</h4>
+                                            <div class="movie-meta">
+                                                <span>Xem lần cuối: @history.NgayXem.ToString("dd/MM")</span>
+                                                <span>@(Math.Round((double)(history.ThoiGianXem) / 60))ph</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            
+                            @if (Model.WatchHistory.Count() > 12)
+                            {
+                                <div class="text-center mt-4">
+                                    <button class="btn btn-secondary" id="loadMoreHistory">
+                                        <i class="fas fa-plus"></i>
+                                        Xem thêm
+                                    </button>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <i class="fas fa-film"></i>
+                                <h3>Chưa có lịch sử xem</h3>
+                                <p>Các bộ phim bạn đã xem sẽ được hiển thị ở đây</p>
+                                <a href="@Url.Action("Index", "Phim")" class="btn btn-primary mt-3">
+                                    <i class="fas fa-play"></i>
+                                    Bắt đầu xem phim
+                                </a>
+                            </div>
+                        }
+                    </div>
+                    
+                    <!-- Statistics Section -->
+                    <div id="statistics" class="section-content">
+                        <h2 class="section-title">
+                            <i class="fas fa-chart-bar"></i>
+                            Thống kê hoạt động
+                        </h2>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-film"></i>
+                                </div>
+                                <div class="stat-number">@(Model.WatchHistory?.Count() ?? 0)</div>
+                                <div class="stat-label">Phim đã xem</div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                                <div class="stat-number">@(Model.FavoriteMovies?.Count() ?? 0)</div>
+                                <div class="stat-label">Phim yêu thích</div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="stat-number">@(Math.Round((Model.WatchHistory?.Sum(h => h.ThoiGianXem) ?? 0) / 60.0, 1))</div>
+                                <div class="stat-label">Giờ đã xem</div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-calendar"></i>
+                                </div>
+                                <div class="stat-number">@(Model.WatchHistory?.Where(h => h.NgayXem >= DateTime.Now.AddDays(-30)).Count() ?? 0)</div>
+                                <div class="stat-label">Phim xem tháng này</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Navigation functionality
+            $('.nav-item').on('click', function(e) {
+                e.preventDefault();
+                
+                const targetSection = $(this).data('section');
+                
+                // Update active nav item
+                $('.nav-item').removeClass('active');
+                $(this).addClass('active');
+                
+                // Show target section
+                $('.section-content').removeClass('active');
+                $(`#${targetSection}`).addClass('active');
+                
+                // Update URL hash
+                window.location.hash = targetSection;
+            });
+            
+            // Handle initial hash
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                $(`.nav-item[data-section="${hash}"]`).click();
+            }
+            
+            // Load more history
+            $('#loadMoreHistory').on('click', function() {
+                // Implementation for loading more history items
+                console.log('Load more history items');
+            });
+            
+            // Form enhancements
+            $('form').on('submit', function() {
+                const submitBtn = $(this).find('button[type="submit"]');
+                submitBtn.prop('disabled', true);
+                submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Đang xử lý...');
+                
+                // Re-enable after 3 seconds
+                setTimeout(function() {
+                    submitBtn.prop('disabled', false);
+                    submitBtn.html(submitBtn.data('original-text') || 'Lưu thay đổi');
+                }, 3000);
+            });
+            
+            // Password confirmation validation
+            $('input[name="ConfirmPassword"]').on('input', function() {
+                const newPassword = $('input[name="NewPassword"]').val();
+                const confirmPassword = $(this).val();
+                
+                if (confirmPassword && newPassword !== confirmPassword) {
+                    this.setCustomValidity('Mật khẩu xác nhận không khớp');
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
+        });
+    </script>
+}

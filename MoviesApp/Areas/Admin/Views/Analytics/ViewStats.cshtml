@@ -1,0 +1,165 @@
+@model dynamic
+
+<div class="row mb-4">
+    <!-- Statistics Cards -->
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">@Model.TotalViews.ToString("N0")</div>
+            <div class="stats-label">Tổng lượt xem</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">@Model.UniqueViewers.ToString("N0")</div>
+            <div class="stats-label">Người xem duy nhất</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">@(Math.Round((double)Model.TotalViews / Math.Max(Model.UniqueViewers, 1), 1))</div>
+            <div class="stats-label">Trung bình lượt xem/người</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">@Model.MostViewedMovies.Count</div>
+            <div class="stats-label">Phim phổ biến</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Most Viewed Movies -->
+    <div class="col-lg-6 mb-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="mb-0"><i class="fas fa-fire me-2"></i>Phim được xem nhiều nhất</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tên phim</th>
+                                <th>Lượt xem</th>
+                                <th>Người xem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var movie in Model.MostViewedMovies)
+                            {
+                                <tr>
+                                    <td>@movie.TenPhim</td>
+                                    <td><span class="badge bg-primary">@movie.TotalViews</span></td>
+                                    <td><span class="badge bg-info">@movie.UniqueViewers</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popular Genres -->
+    <div class="col-lg-6 mb-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="mb-0"><i class="fas fa-tags me-2"></i>Thể loại phổ biến</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Thể loại</th>
+                                <th>Lượt xem</th>
+                                <th>Tỷ lệ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                var totalGenreViews = ((IEnumerable<dynamic>)Model.PopularGenres).Sum(g => (int)g.ViewCount);
+                            }
+                            @foreach (var genre in Model.PopularGenres)
+                            {
+                                <tr>
+                                    <td>@genre.TheLoai</td>
+                                    <td><span class="badge bg-success">@genre.ViewCount</span></td>
+                                    <td>
+                                        @{
+                                            var percentage = totalGenreViews > 0 ? Math.Round((double)genre.ViewCount * 100 / totalGenreViews, 1) : 0;
+                                        }
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar" role="progressbar" style="width: @percentage%">
+                                                @percentage%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Views by Month Chart -->
+<div class="row">
+    <div class="col-12">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Thống kê xem theo tháng (12 tháng gần nhất)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="viewsChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Views by Month Chart
+        const ctx = document.getElementById('viewsChart').getContext('2d');
+        const viewsData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ViewsByMonth));
+        
+        const labels = viewsData.map(item => `${item.month}/${item.year}`);
+        const data = viewsData.map(item => item.viewCount);
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Lượt xem',
+                    data: data,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    tension: 0.1,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Lượt xem theo tháng'
+                    }
+                }
+            }
+        });
+    </script>
+}

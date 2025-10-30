@@ -1,0 +1,313 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - CCFilm</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
+    
+    <!-- CSS Libraries -->
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/css/site.css" rel="stylesheet" asp-append-version="true" />
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Movie List Styles -->
+    <link href="~/css/movie-list.css" rel="stylesheet" asp-append-version="true" />
+    
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNavbar">
+        <div class="container-fluid">
+            <!-- Brand Logo -->
+            <a class="navbar-brand" href="@Url.Action("Index", "Home")">
+                <div class="logo-container">
+                    <i class="fas fa-film text-primary"></i>
+                    <span class="brand-text">CCFilm</span>
+                </div>
+            </a>
+
+            <!-- Mobile Toggle -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Navigation Menu -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index", "Home")">
+                            <i class="fas fa-home"></i> Trang chủ
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-list"></i> Thể loại
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="@Url.Action("Index", "Phim", new { theLoai = "Hành động" })">Hành động</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("Index", "Phim", new { theLoai = "Hài" })">Hài</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("Index", "Phim", new { theLoai = "Tình cảm" })">Tình cảm</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("Index", "Phim", new { theLoai = "Kinh dị" })">Kinh dị</a></li>
+                            <li><a class="dropdown-item" href="@Url.Action("Index", "Phim", new { theLoai = "Khoa học viễn tưởng" })">Khoa học viễn tưởng</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index", "Phim")">
+                            <i class="fas fa-film"></i> Phim
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-heart"></i> Yêu thích
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Search Bar -->
+                <form class="d-flex me-3" asp-action="Search" asp-controller="Phim" method="get">
+                    <div class="search-container">
+                        <input class="form-control search-input" type="search" name="q" placeholder="Tìm kiếm phim..." aria-label="Search">
+                        <button class="btn-search" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- User Menu -->
+                <ul class="navbar-nav">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle user-dropdown" href="#" role="button" data-bs-toggle="dropdown">
+                                <div class="user-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <span class="user-name">@User.Identity.Name</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="@Url.Action("Profile", "Account")">
+                                    <i class="fas fa-user-circle"></i> Hồ sơ
+                                </a></li>
+                                <li><a class="dropdown-item" href="#">
+                                    <i class="fas fa-cog"></i> Cài đặt
+                                </a></li>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="@Url.Action("Index", "Dashboard", new { area = "Admin" })">
+                                        <i class="fas fa-tachometer-alt"></i> Quản trị
+                                    </a></li>
+                                }
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form asp-action="Logout" asp-controller="Account" method="post" class="d-inline">
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("Login", "Account")">
+                                <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn-register" href="@Url.Action("Register", "Account")">
+                                <i class="fas fa-user-plus"></i> Đăng ký
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="footer-section">
+                        <h5 class="footer-title">CCFilm</h5>
+                        <p class="footer-description">
+                            Nền tảng xem phim trực tuyến hàng đầu với hàng ngàn bộ phim và series chất lượng cao.
+                        </p>
+                        <div class="social-links">
+                            <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <div class="footer-section">
+                        <h6 class="footer-subtitle">Thể loại</h6>
+                        <ul class="footer-links">
+                            <li><a href="#">Hành động</a></li>
+                            <li><a href="#">Hài</a></li>
+                            <li><a href="#">Tình cảm</a></li>
+                            <li><a href="#">Kinh dị</a></li>
+                            <li><a href="#">Khoa học viễn tưởng</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <div class="footer-section">
+                        <h6 class="footer-subtitle">Hỗ trợ</h6>
+                        <ul class="footer-links">
+                            <li><a href="#">Trung tâm trợ giúp</a></li>
+                            <li><a href="#">Liên hệ</a></li>
+                            <li><a href="#">Báo cáo lỗi</a></li>
+                            <li><a href="#">FAQ</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <div class="footer-section">
+                        <h6 class="footer-subtitle">Pháp lý</h6>
+                        <ul class="footer-links">
+                            <li><a href="#">Điều khoản sử dụng</a></li>
+                            <li><a href="#">Chính sách bảo mật</a></li>
+                            <li><a href="#">Cookie</a></li>
+                            <li><a href="#">Bản quyền</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <div class="footer-section">
+                        <h6 class="footer-subtitle">Ứng dụng</h6>
+                        <div class="app-downloads">
+                            <a href="#" class="app-link">
+                                <img src="~/images/app-store.png" alt="App Store" class="app-badge">
+                            </a>
+                            <a href="#" class="app-link">
+                                <img src="~/images/google-play.png" alt="Google Play" class="app-badge">
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr class="footer-divider">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p class="footer-copyright">
+                        &copy; @DateTime.Now.Year CCFilm. Tất cả quyền được bảo lưu.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Đang tải...</p>
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/app.js" asp-append-version="true"></script>
+    
+    <!-- AOS Animation -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            offset: 100,
+            once: true,
+            easing: 'ease-out-quart'
+        });
+
+        // Enhanced navbar scroll effect
+        $(window).scroll(function() {
+            const navbar = $('#mainNavbar');
+            const scrollTop = $(this).scrollTop();
+            
+            if (scrollTop > 50) {
+                navbar.addClass('navbar-scrolled');
+            } else {
+                navbar.removeClass('navbar-scrolled');
+            }
+        });
+
+        // Search functionality enhancements
+        $('.search-input').on('focus', function() {
+            $(this).parent().addClass('search-focused');
+        }).on('blur', function() {
+            setTimeout(() => {
+                $(this).parent().removeClass('search-focused');
+            }, 200);
+        });
+
+        // Loading overlay management
+        function showLoading() {
+            $('#loadingOverlay').fadeIn(200);
+        }
+
+        function hideLoading() {
+            $('#loadingOverlay').fadeOut(200);
+        }
+
+        // Auto-hide loading on page load
+        $(window).on('load', function() {
+            hideLoading();
+        });
+
+        // Enhanced smooth scrolling
+        $('a[href^="#"]').on('click', function(e) {
+            e.preventDefault();
+            const target = $($(this).attr('href'));
+            if (target.length) {
+                $('html, body').animate({
+                    scrollTop: target.offset().top - 80
+                }, 600, 'easeInOutCubic');
+            }
+        });
+
+        // Performance optimization: Throttled resize handler
+        let resizeTimer;
+        $(window).on('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                // Handle responsive adjustments
+                if ($(window).width() < 768) {
+                    $('.navbar-collapse').removeClass('show');
+                }
+            }, 250);
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

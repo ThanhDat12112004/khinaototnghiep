@@ -1,0 +1,531 @@
+@model MoviesApp.Models.VideoPlayerViewModel
+@{
+    ViewData["Title"] = $"Xem {Model?.Phim?.TenPhim ?? "phim"}";
+    Layout = null; // Sử dụng layout riêng cho video player
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - CCFilm</title>
+    
+    <!-- CSS Libraries -->
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/css/site.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/video-player.css" rel="stylesheet" asp-append-version="true" />
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- Video.js -->
+    <link href="https://vjs.zencdn.net/8.6.1/video-js.css" rel="stylesheet">
+</head>
+<body class="video-player-body">
+    <!-- Video Player Header -->
+    <header class="video-header">
+        <div class="container-fluid">
+            <div class="video-header-content">
+                <!-- Back Button -->
+                <div class="header-left">
+                    <a href="@Url.Action("Details", "Phim", new { id = Model?.Phim?.MaPhim })" class="btn-back">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Quay lại</span>
+                    </a>
+                </div>
+                
+                <!-- Movie Info -->
+                <div class="header-center">
+                    <div class="movie-info">
+                        <h1 class="movie-title">@Model?.Phim?.TenPhim</h1>
+                        @if (Model?.CurrentEpisode != null)
+                        {
+                            <span class="episode-info">
+                                @if (Model.CurrentEpisode.SoTapThuTu == 0)
+                                {
+                                    <span>Trailer</span>
+                                }
+                                else
+                                {
+                                    <span>Tập @Model.CurrentEpisode.SoTapThuTu</span>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.CurrentEpisode.TenTap))
+                                {
+                                    <span>- @Model.CurrentEpisode.TenTap</span>
+                                }
+                            </span>
+                        }
+                    </div>
+                </div>
+                
+                <!-- Header Actions -->
+                <div class="header-right">
+                    <button class="btn-header-action btn-settings" data-bs-toggle="dropdown">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#" onclick="changeQuality('1080p')">1080p HD</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="changeQuality('720p')">720p HD</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="changeQuality('480p')">480p</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="changeQuality('360p')">360p</a></li>
+                    </ul>
+                    
+                    <button class="btn-header-action btn-fullscreen" onclick="toggleFullscreen()">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Video Player Section -->
+    <main class="video-main">
+        <div class="video-container">
+            <div class="video-wrapper" id="videoWrapper">
+                @if (!string.IsNullOrEmpty(Model?.CurrentEpisode?.VideoUrl))
+                {
+                    <video id="videoPlayer" 
+                           class="video-js vjs-default-skin" 
+                           controls 
+                           preload="auto" 
+                           data-setup='{"fluid": true, "responsive": true}'
+                           poster="@(Model.Phim?.AnhPhim)">
+                        <source src="@Model.CurrentEpisode.VideoUrl" type="video/mp4">
+                        <p class="vjs-no-js">
+                            Để xem video này, vui lòng 
+                            <a href="https://videojs.com/html5-video-support/" target="_blank">kích hoạt JavaScript</a>, 
+                            và cân nhắc nâng cấp lên trình duyệt hỗ trợ
+                            <a href="https://videojs.com/html5-video-support/" target="_blank">HTML5 video</a>.
+                        </p>
+                    </video>
+                }
+                else
+                {
+                    <div class="video-error">
+                        <div class="error-content">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>Không thể tải video</h3>
+                            <p>Video hiện không khả dụng. Vui lòng thử lại sau.</p>
+                            <a href="@Url.Action("Details", "Phim", new { id = Model?.Phim?.MaPhim })" class="btn btn-primary">
+                                Quay lại trang phim
+                            </a>
+                        </div>
+                    </div>
+                }
+                
+                <!-- Video Loading Overlay -->
+                <div class="video-loading" id="videoLoading">
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                        <p>Đang tải video...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Episode Navigation -->
+    @if (Model?.Episodes != null && Model.Episodes.Count() > 1)
+    {
+        <section class="episode-navigation">
+            <div class="container-fluid">
+                <div class="episode-nav-header">
+                    <h3>
+                        <i class="fas fa-list"></i>
+                        Danh sách tập
+                    </h3>
+                </div>
+                
+                <div class="episode-nav-list">
+                    @foreach (var episode in Model.Episodes.OrderBy(e => e.SoTapThuTu))
+                    {
+                        <a href="@Url.Action("Watch", "Phim", new { id = Model.Phim?.MaPhim, episode = episode.SoTapThuTu })" 
+                           class="episode-nav-item @(Model.CurrentEpisode?.MaTap == episode.MaTap ? "active" : "")">
+                            <div class="episode-nav-thumbnail">
+                                @if (episode.SoTapThuTu == 0)
+                                {
+                                    <div class="thumbnail-placeholder trailer">
+                                        <i class="fas fa-play-circle"></i>
+                                        <span>Trailer</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="thumbnail-placeholder">
+                                        <i class="fas fa-film"></i>
+                                        <span>@episode.SoTapThuTu</span>
+                                    </div>
+                                }
+                                @if (Model.CurrentEpisode?.MaTap == episode.MaTap)
+                                {
+                                    <div class="playing-indicator">
+                                        <i class="fas fa-play"></i>
+                                    </div>
+                                }
+                            </div>
+                            <div class="episode-nav-info">
+                                <h4 class="episode-nav-title">
+                                    @if (episode.SoTapThuTu == 0)
+                                    {
+                                        <span>Trailer</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Tập @episode.SoTapThuTu</span>
+                                    }
+                                </h4>
+                                @if (!string.IsNullOrEmpty(episode.TenTap))
+                                {
+                                    <p class="episode-nav-subtitle">@episode.TenTap</p>
+                                }
+                                @if (episode.ThoiLuong.HasValue)
+                                {
+                                    <span class="episode-nav-duration">
+                                        <i class="fas fa-clock"></i>
+                                        @episode.ThoiLuong phút
+                                    </span>
+                                }
+                            </div>
+                        </a>
+                    }
+                </div>
+            </div>
+        </section>
+    }
+
+    <!-- Movie Info Section -->
+    <section class="movie-info-section">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="movie-details">
+                        <h2>Về bộ phim</h2>
+                        @if (!string.IsNullOrEmpty(Model?.Phim?.MoTaPhim))
+                        {
+                            <p class="movie-description">@Model.Phim.MoTaPhim</p>
+                        }
+                        
+                        <div class="movie-meta-grid">
+                            @if (Model?.Phim?.DienVien != null)
+                            {
+                                <div class="meta-item">
+                                    <strong>Diễn viên:</strong>
+                                    <span>@Model.Phim.DienVien</span>
+                                </div>
+                            }
+                            @if (Model?.Phim?.DaoDien != null)
+                            {
+                                <div class="meta-item">
+                                    <strong>Đạo diễn:</strong>
+                                    <span>@Model.Phim.DaoDien</span>
+                                </div>
+                            }
+                            @if (Model?.Phim?.TheLoaiPhim != null)
+                            {
+                                <div class="meta-item">
+                                    <strong>Thể loại:</strong>
+                                    <span>@Model.Phim.TheLoaiPhim.TenTL</span>
+                                </div>
+                            }
+                            @if (Model?.Phim?.QuocGia != null)
+                            {
+                                <div class="meta-item">
+                                    <strong>Quốc gia:</strong>
+                                    <span>@Model.Phim.QuocGia.TenQG</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="movie-actions-sidebar">
+                        <button class="btn btn-outline-light btn-add-to-list">
+                            <i class="fas fa-plus"></i>
+                            Thêm vào danh sách
+                        </button>
+                        
+                        <button class="btn btn-outline-light btn-rate">
+                            <i class="fas fa-star"></i>
+                            Đánh giá
+                        </button>
+                        
+                        <button class="btn btn-outline-light btn-share-movie">
+                            <i class="fas fa-share"></i>
+                            Chia sẻ
+                        </button>
+                    </div>
+                    
+                    <!-- Movie Stats -->
+                    <div class="movie-stats">
+                        @if (Model?.Phim?.DiemImdb.HasValue == true)
+                        {
+                            <div class="stat-item">
+                                <div class="stat-icon">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <span class="stat-value">@Model.Phim.DiemImdb.Value.ToString("F1")</span>
+                                    <span class="stat-label">IMDb</span>
+                                </div>
+                            </div>
+                        }
+                        @if (Model?.Phim?.NamPhatHanh.HasValue == true)
+                        {
+                            <div class="stat-item">
+                                <div class="stat-icon">
+                                    <i class="fas fa-calendar"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <span class="stat-value">@Model.Phim.NamPhatHanh</span>
+                                    <span class="stat-label">Năm</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- JavaScript Libraries -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://vjs.zencdn.net/8.6.1/video.min.js"></script>
+    
+    <script>
+        let player;
+        
+        $(document).ready(function() {
+            initializeVideoPlayer();
+            setupKeyboardShortcuts();
+            trackWatchProgress();
+        });
+        
+        function initializeVideoPlayer() {
+            if (document.getElementById('videoPlayer')) {
+                player = videojs('videoPlayer', {
+                    fluid: true,
+                    responsive: true,
+                    playbackRates: [0.5, 1, 1.25, 1.5, 2],
+                    controls: true,
+                    preload: 'auto'
+                });
+                
+                player.ready(function() {
+                    console.log('Video player is ready');
+                    $('#videoLoading').fadeOut();
+                });
+                
+                player.on('loadstart', function() {
+                    $('#videoLoading').fadeIn();
+                });
+                
+                player.on('canplaythrough', function() {
+                    $('#videoLoading').fadeOut();
+                });
+                
+                player.on('error', function() {
+                    $('#videoLoading').fadeOut();
+                    showVideoError();
+                });
+                
+                // Auto-save watch progress every 10 seconds
+                player.on('timeupdate', function() {
+                    if (player.currentTime() % 10 < 1) {
+                        saveWatchProgress();
+                    }
+                });
+            }
+        }
+        
+        function setupKeyboardShortcuts() {
+            $(document).keydown(function(e) {
+                if (player && player.readyState() > 0) {
+                    switch(e.which) {
+                        case 32: // Spacebar - Play/Pause
+                            e.preventDefault();
+                            if (player.paused()) {
+                                player.play();
+                            } else {
+                                player.pause();
+                            }
+                            break;
+                        case 37: // Left arrow - Rewind 10s
+                            e.preventDefault();
+                            player.currentTime(Math.max(0, player.currentTime() - 10));
+                            break;
+                        case 39: // Right arrow - Forward 10s
+                            e.preventDefault();
+                            player.currentTime(Math.min(player.duration(), player.currentTime() + 10));
+                            break;
+                        case 70: // F - Fullscreen
+                            e.preventDefault();
+                            toggleFullscreen();
+                            break;
+                        case 77: // M - Mute
+                            e.preventDefault();
+                            player.muted(!player.muted());
+                            break;
+                    }
+                }
+            });
+        }
+        
+        function toggleFullscreen() {
+            if (player) {
+                if (player.isFullscreen()) {
+                    player.exitFullscreen();
+                } else {
+                    player.requestFullscreen();
+                }
+            }
+        }
+        
+        function changeQuality(quality) {
+            // Implementation for quality change
+            console.log('Changing quality to:', quality);
+            // This would need to be implemented based on your video streaming setup
+        }
+        
+        function saveWatchProgress() {
+            if (player && player.duration() > 0) {
+                const progress = {
+                    movieId: '@Model?.Phim?.MaPhim',
+                    episodeId: '@Model?.CurrentEpisode?.MaTap',
+                    currentTime: player.currentTime(),
+                    duration: player.duration(),
+                    watchedPercentage: (player.currentTime() / player.duration()) * 100
+                };
+                
+                // AJAX call to save progress
+                $.post('/api/watch-progress', progress)
+                    .fail(function() {
+                        console.log('Failed to save watch progress');
+                    });
+            }
+        }
+        
+        function trackWatchProgress() {
+            // Load saved progress if exists
+            const movieId = '@Model?.Phim?.MaPhim';
+            const episodeId = '@Model?.CurrentEpisode?.MaTap';
+            
+            $.get(`/api/watch-progress/${movieId}/${episodeId}`)
+                .done(function(data) {
+                    if (data && data.currentTime > 10 && player) {
+                        // Show resume option
+                        showResumeOption(data.currentTime);
+                    }
+                });
+        }
+        
+        function showResumeOption(currentTime) {
+            const minutes = Math.floor(currentTime / 60);
+            const seconds = Math.floor(currentTime % 60);
+            const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            const resumeModal = `
+                <div class="resume-modal" id="resumeModal">
+                    <div class="resume-content">
+                        <h4>Tiếp tục xem?</h4>
+                        <p>Bạn đã xem đến phút ${timeString}</p>
+                        <div class="resume-actions">
+                            <button class="btn btn-primary" onclick="resumePlayback(${currentTime})">Tiếp tục</button>
+                            <button class="btn btn-outline-light" onclick="startFromBeginning()">Xem từ đầu</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            $('body').append(resumeModal);
+            $('#resumeModal').fadeIn();
+        }
+        
+        function resumePlayback(time) {
+            if (player) {
+                player.currentTime(time);
+                player.play();
+            }
+            $('#resumeModal').fadeOut().remove();
+        }
+        
+        function startFromBeginning() {
+            if (player) {
+                player.currentTime(0);
+                player.play();
+            }
+            $('#resumeModal').fadeOut().remove();
+        }
+        
+        function showVideoError() {
+            const errorHtml = `
+                <div class="video-error">
+                    <div class="error-content">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Lỗi phát video</h3>
+                        <p>Không thể tải video. Vui lòng thử lại sau.</p>
+                        <button class="btn btn-primary" onclick="location.reload()">Thử lại</button>
+                    </div>
+                </div>
+            `;
+            $('.video-wrapper').append(errorHtml);
+        }
+        
+        // Button event handlers
+        $('.btn-add-to-list').click(function() {
+            // Add to watchlist functionality
+            console.log('Add to list clicked');
+        });
+        
+        $('.btn-rate').click(function() {
+            // Rating functionality
+            console.log('Rate clicked');
+        });
+        
+        $('.btn-share-movie').click(function() {
+            if (navigator.share) {
+                navigator.share({
+                    title: '@Model?.Phim?.TenPhim',
+                    text: 'Xem phim hay trên CCFilm',
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                // Show notification
+            }
+        });
+        
+        // Prevent context menu on video
+        $('.video-wrapper').on('contextmenu', function(e) {
+            e.preventDefault();
+        });
+        
+        // Auto-hide header on video play
+        if (player) {
+            player.on('play', function() {
+                $('.video-header').addClass('auto-hide');
+            });
+            
+            player.on('pause', function() {
+                $('.video-header').removeClass('auto-hide');
+            });
+        }
+        
+        // Show header on mouse move
+        $(document).mousemove(function() {
+            $('.video-header').removeClass('auto-hide');
+            clearTimeout(window.hideHeaderTimeout);
+            window.hideHeaderTimeout = setTimeout(function() {
+                if (player && !player.paused()) {
+                    $('.video-header').addClass('auto-hide');
+                }
+            }, 3000);
+        });
+    </script>
+</body>
+</html>

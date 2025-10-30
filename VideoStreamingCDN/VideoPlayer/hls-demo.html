@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HLS Video Demo - Cách xem .m3u8 và .ts</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        h2 {
+            color: #3498db;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .code {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .video-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        video {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            border-radius: 10px;
+            background: #000;
+        }
+
+        .method {
+            background: #e8f6f3;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 15px 0;
+        }
+
+        .warning {
+            background: #fdf2e9;
+            padding: 15px;
+            border-left: 4px solid #f39c12;
+            margin: 15px 0;
+        }
+
+        .info {
+            background: #ebf3fd;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 15px 0;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .file-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 HLS Video Streaming - Cách Frontend xem .m3u8 và .ts</h1>
+
+        <div class="section">
+            <h2>📚 HLS là gì?</h2>
+            <div class="info">
+                <strong>HLS (HTTP Live Streaming)</strong> là protocol để stream video qua HTTP:
+                <ul>
+                    <li><strong>.m3u8</strong> - File playlist chứa danh sách các segment</li>
+                    <li><strong>.ts</strong> - File video segments (từng đoạn nhỏ)</li>
+                    <li>Browser sẽ đọc .m3u8 → download từng .ts → ghép lại thành video</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📁 Cấu trúc Files</h2>
+            <p>Sau khi API xử lý video ID <strong>123</strong>, ta có:</p>
+            <div class="file-list">
+videos/123/<br>
+├── master.m3u8      ← Playlist chính<br>
+├── segment_000.ts   ← Video chunk 1<br>
+├── segment_001.ts   ← Video chunk 2<br>
+├── segment_002.ts   ← Video chunk 3<br>
+└── ... (nhiều segments)
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔍 Nội dung file master.m3u8</h2>
+            <p>File .m3u8 có nội dung như này:</p>
+            <div class="code" id="m3u8Content">
+#EXTM3U<br>
+#EXT-X-VERSION:3<br>
+#EXT-X-TARGETDURATION:11<br>
+#EXT-X-MEDIA-SEQUENCE:0<br>
+#EXTINF:10.0,<br>
+segment_000.ts<br>
+#EXTINF:10.0,<br>
+segment_001.ts<br>
+#EXTINF:10.0,<br>
+segment_002.ts<br>
+#EXT-X-ENDLIST
+            </div>
+            <button onclick="loadM3U8Content()">📄 Load M3U8 thật từ server</button>
+        </div>
+
+        <div class="section">
+            <h2>🎥 Cách 1: HTML5 Video Tag (Đơn giản nhất)</h2>
+            <div class="method">
+                <p><strong>Cách hoạt động:</strong> Browser tự động parse .m3u8 và load .ts files</p>
+                <div class="code">
+&lt;video controls&gt;<br>
+&nbsp;&nbsp;&lt;source src="http://localhost:5288/videos/123/master.m3u8" type="application/vnd.apple.mpegurl"&gt;<br>
+&lt;/video&gt;
+                </div>
+            </div>
+
+            <div class="video-container">
+                <h3>Demo Video với HTML5:</h3>
+                <video id="html5Video" controls>
+                    <source src="http://localhost:5288/videos/123/master.m3u8" type="application/vnd.apple.mpegurl">
+                    <p>Browser không hỗ trợ HLS</p>
+                </video>
+                <br>
+                <button onclick="testHTML5Video()">🎬 Test HTML5 Video</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎥 Cách 2: Video.js Library (Tốt hơn)</h2>
+            <div class="method">
+                <p><strong>Ưu điểm:</strong> Hỗ trợ tốt hơn, nhiều browser hơn, adaptive bitrate</p>
+                <div class="code">
+&lt;script src="https://vjs.zencdn.net/8.6.1/video.min.js"&gt;&lt;/script&gt;<br>
+&lt;link href="https://vjs.zencdn.net/8.6.1/video-js.css" rel="stylesheet"&gt;<br><br>
+
+&lt;video class="video-js" id="player" controls&gt;&lt;/video&gt;<br><br>
+
+&lt;script&gt;<br>
+var player = videojs('player');<br>
+player.src({<br>
+&nbsp;&nbsp;src: 'http://localhost:5288/videos/123/master.m3u8',<br>
+&nbsp;&nbsp;type: 'application/x-mpegURL'<br>
+});<br>
+&lt;/script&gt;
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎥 Cách 3: HLS.js Library (Professional)</h2>
+            <div class="method">
+                <p><strong>Khi nào dùng:</strong> Cần control chi tiết, browser không hỗ trợ native HLS</p>
+                <div class="code">
+&lt;script src="https://cdn.jsdelivr.net/npm/hls.js@latest"&gt;&lt;/script&gt;<br><br>
+
+&lt;video id="video" controls&gt;&lt;/video&gt;<br><br>
+
+&lt;script&gt;<br>
+var video = document.getElementById('video');<br>
+if (Hls.isSupported()) {<br>
+&nbsp;&nbsp;var hls = new Hls();<br>
+&nbsp;&nbsp;hls.loadSource('http://localhost:5288/videos/123/master.m3u8');<br>
+&nbsp;&nbsp;hls.attachMedia(video);<br>
+} else if (video.canPlayType('application/vnd.apple.mpegurl')) {<br>
+&nbsp;&nbsp;video.src = 'http://localhost:5288/videos/123/master.m3u8';<br>
+}<br>
+&lt;/script&gt;
+                </div>
+            </div>
+
+            <div class="video-container">
+                <h3>Demo với HLS.js:</h3>
+                <video id="hlsVideo" controls style="max-width: 600px; width: 100%;"></video>
+                <br>
+                <button onclick="loadHLSVideo()">🎬 Load với HLS.js</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔧 Debug & Troubleshooting</h2>
+            <div class="warning">
+                <h3>Các vấn đề thường gặp:</h3>
+                <ul>
+                    <li><strong>Video không load:</strong> Kiểm tra CORS headers</li>
+                    <li><strong>Video lag/stutter:</strong> Segment size quá lớn</li>
+                    <li><strong>Không có sound:</strong> Audio codec không đúng</li>
+                    <li><strong>Browser không hỗ trợ:</strong> Dùng HLS.js hoặc Video.js</li>
+                </ul>
+            </div>
+
+            <h3>🛠 Debug Tools:</h3>
+            <button onclick="checkVideoFiles()">📁 Kiểm tra files tồn tại</button>
+            <button onclick="checkCORS()">🌐 Test CORS</button>
+            <button onclick="downloadM3U8()">⬇️ Download M3U8</button>
+
+            <div id="debugOutput" style="margin-top: 15px;"></div>
+        </div>
+
+        <div class="section">
+            <h2>💡 Tips cho Developer</h2>
+            <div class="info">
+                <ul>
+                    <li><strong>Development:</strong> Dùng HTML5 video tag cho đơn giản</li>
+                    <li><strong>Production:</strong> Dùng Video.js hoặc HLS.js cho stability</li>
+                    <li><strong>Mobile:</strong> iOS hỗ trợ native HLS, Android cần library</li>
+                    <li><strong>Performance:</strong> Segment 10s thường optimal</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- HLS.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+    <script>
+        const VIDEO_URL = 'http://localhost:5288/videos/123/master.m3u8';
+
+        function testHTML5Video() {
+            const video = document.getElementById('html5Video');
+            video.load();
+            video.play().catch(e => {
+                alert('HTML5 Video Error: ' + e.message);
+                console.error('HTML5 Error:', e);
+            });
+        }
+
+        function loadHLSVideo() {
+            const video = document.getElementById('hlsVideo');
+
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(VIDEO_URL);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    video.play().catch(e => console.error('HLS Play Error:', e));
+                });
+                hls.on(Hls.Events.ERROR, function(event, data) {
+                    console.error('HLS Error:', data);
+                    alert('HLS Error: ' + data.details);
+                });
+                console.log('HLS.js loaded successfully');
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = VIDEO_URL;
+                video.play().catch(e => {
+                    alert('Native HLS Error: ' + e.message);
+                    console.error('Native HLS Error:', e);
+                });
+                console.log('Using native HLS support');
+            } else {
+                alert('Browser không hỗ trợ HLS!');
+            }
+        }
+
+        async function loadM3U8Content() {
+            try {
+                const response = await fetch(VIDEO_URL);
+                const text = await response.text();
+                document.getElementById('m3u8Content').innerHTML =
+                    text.split('\n').join('<br>');
+                console.log('M3U8 Content:', text);
+            } catch (error) {
+                alert('Không thể load M3U8: ' + error.message);
+                console.error('M3U8 Load Error:', error);
+            }
+        }
+
+        async function checkVideoFiles() {
+            const output = document.getElementById('debugOutput');
+            output.innerHTML = '<h4>🔍 Checking files...</h4>';
+
+            const files = [
+                'http://localhost:5288/videos/123/master.m3u8',
+                'http://localhost:5288/videos/123/segment_000.ts',
+                'http://localhost:5288/videos/123/segment_001.ts'
+            ];
+
+            let results = '';
+            for (const file of files) {
+                try {
+                    const response = await fetch(file, { method: 'HEAD' });
+                    results += `✅ ${file} (${response.status})<br>`;
+                } catch (error) {
+                    results += `❌ ${file} (Error: ${error.message})<br>`;
+                }
+            }
+            output.innerHTML = '<h4>📁 File Status:</h4>' + results;
+        }
+
+        async function checkCORS() {
+            const output = document.getElementById('debugOutput');
+            try {
+                const response = await fetch(VIDEO_URL);
+                const corsHeader = response.headers.get('Access-Control-Allow-Origin');
+                output.innerHTML = `
+                    <h4>🌐 CORS Status:</h4>
+                    ✅ CORS Working<br>
+                    Access-Control-Allow-Origin: ${corsHeader || 'Not set'}<br>
+                    Status: ${response.status}
+                `;
+            } catch (error) {
+                output.innerHTML = `
+                    <h4>🌐 CORS Status:</h4>
+                    ❌ CORS Error: ${error.message}
+                `;
+            }
+        }
+
+        function downloadM3U8() {
+            const link = document.createElement('a');
+            link.href = VIDEO_URL;
+            link.download = 'master.m3u8';
+            link.click();
+        }
+
+        // Auto-load HLS.js demo when page loads
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                console.log('Auto-loading HLS demo...');
+                loadHLSVideo();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

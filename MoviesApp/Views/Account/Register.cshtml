@@ -1,0 +1,162 @@
+@model RegisterDto
+@{
+    ViewData["Title"] = "Đăng ký";
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+}
+
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-content">
+            <div class="auth-card">
+                <div class="auth-logo">
+                    <h1><i class="fas fa-film me-2"></i>MoviesApp</h1>
+                    <p>Tham gia cộng đồng yêu phim của chúng tôi</p>
+                </div>
+                
+                <h2 class="auth-title">Tạo tài khoản mới</h2>
+                
+                @if (!string.IsNullOrEmpty(TempData["Error"]?.ToString()))
+                {
+                    <div class="alert-auth">
+                        <i class="fas fa-exclamation-triangle alert-icon"></i>
+                        @TempData["Error"]
+                    </div>
+                }
+                
+                @if (!string.IsNullOrEmpty(TempData["Success"]?.ToString()))
+                {
+                    <div class="alert-success">
+                        <i class="fas fa-check-circle alert-icon"></i>
+                        @TempData["Success"]
+                    </div>
+                }
+                
+                <form asp-action="Register" method="post" id="registerForm" novalidate>
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                    
+                    <div class="form-floating">
+                        <input asp-for="FullName" class="form-control" placeholder="Họ và tên" autocomplete="name" />
+                        <label asp-for="FullName">
+                            <i class="fas fa-user me-2"></i>Họ và tên
+                        </label>
+                        <span asp-validation-for="FullName" class="field-validation-error"></span>
+                    </div>
+                    
+                    <div class="form-floating">
+                        <input asp-for="Email" class="form-control" placeholder="Email" autocomplete="email" />
+                        <label asp-for="Email">
+                            <i class="fas fa-envelope me-2"></i>Địa chỉ email
+                        </label>
+                        <span asp-validation-for="Email" class="field-validation-error"></span>
+                    </div>
+                    
+                    <div class="form-floating">
+                        <input asp-for="PhoneNumber" class="form-control" placeholder="Số điện thoại" autocomplete="tel" />
+                        <label asp-for="PhoneNumber">
+                            <i class="fas fa-phone me-2"></i>Số điện thoại (tùy chọn)
+                        </label>
+                        <span asp-validation-for="PhoneNumber" class="field-validation-error"></span>
+                    </div>
+                    
+                    <div class="form-floating">
+                        <div class="input-group">
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Mật khẩu" id="passwordInput" autocomplete="new-password" />
+                            <span class="password-toggle" onclick="togglePassword('passwordInput', 'passwordIcon')">
+                                <i class="fas fa-eye" id="passwordIcon"></i>
+                            </span>
+                        </div>
+                        <label asp-for="Password">
+                            <i class="fas fa-lock me-2"></i>Mật khẩu
+                        </label>
+                        <span asp-validation-for="Password" class="field-validation-error"></span>
+                        <small class="text-muted">Mật khẩu phải có ít nhất 6 ký tự</small>
+                    </div>
+                    
+                    <div class="form-floating">
+                        <div class="input-group">
+                            <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Xác nhận mật khẩu" id="confirmPasswordInput" autocomplete="new-password" />
+                            <span class="password-toggle" onclick="togglePassword('confirmPasswordInput', 'confirmPasswordIcon')">
+                                <i class="fas fa-eye" id="confirmPasswordIcon"></i>
+                            </span>
+                        </div>
+                        <label asp-for="ConfirmPassword">
+                            <i class="fas fa-lock me-2"></i>Xác nhận mật khẩu
+                        </label>
+                        <span asp-validation-for="ConfirmPassword" class="field-validation-error"></span>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                        <label class="form-check-label" for="agreeTerms">
+                            Tôi đồng ý với <a href="#" class="text-primary">Điều khoản dịch vụ</a> và <a href="#" class="text-primary">Chính sách bảo mật</a>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Tạo tài khoản
+                    </button>
+                </form>
+                
+                <div class="auth-divider">
+                    <span>Hoặc</span>
+                </div>
+                
+                <div class="auth-links">
+                    <p>Đã có tài khoản? <a href="@Url.Action("Login", "Account")">Đăng nhập ngay</a></p>
+                    <p><a href="@Url.Action("Index", "Home")">← Về trang chủ</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function togglePassword(inputId, iconId) {
+            const passwordInput = document.getElementById(inputId);
+            const passwordIcon = document.getElementById(iconId);
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordIcon.classList.remove('fa-eye');
+                passwordIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                passwordIcon.classList.remove('fa-eye-slash');
+                passwordIcon.classList.add('fa-eye');
+            }
+        }
+        
+        // Form validation enhancement
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('registerForm');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            
+            form.addEventListener('submit', function(e) {
+                submitBtn.classList.add('btn-loading');
+                submitBtn.disabled = true;
+            });
+            
+            // Real-time password validation
+            const password = document.getElementById('passwordInput');
+            const confirmPassword = document.getElementById('confirmPasswordInput');
+            
+            function validatePasswordMatch() {
+                if (confirmPassword.value && password.value !== confirmPassword.value) {
+                    confirmPassword.setCustomValidity('Mật khẩu xác nhận không khớp');
+                } else {
+                    confirmPassword.setCustomValidity('');
+                }
+            }
+            
+            password.addEventListener('input', validatePasswordMatch);
+            confirmPassword.addEventListener('input', validatePasswordMatch);
+        });
+    </script>
+}

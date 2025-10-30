@@ -1,0 +1,1015 @@
+@model MoviesApp.Models.VideoPlayerViewModel
+@{
+    ViewData["Title"] = $"Xem {Model?.Phim?.TenPhim ?? "phim"}";
+    Layout = null; // Sử dụng layout riêng cho video player
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - CCFilm</title>
+    
+    <!-- CSS Libraries -->
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/css/site.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/enhanced-video-player.css" rel="stylesheet" asp-append-version="true" />
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- Video.js -->
+    <link href="https://vjs.zencdn.net/8.6.1/video-js.css" rel="stylesheet">
+</head>
+<body class="video-player-body">
+    <!-- Video Player Header -->
+    <header class="player-header">
+        <div class="container-fluid">
+            <div class="player-header-content">
+                <!-- Back Button -->
+                <div class="header-left">
+                    <a href="@Url.Action("Details", "Phim", new { id = Model?.Phim?.MaPhim })" class="btn-back">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Quay lại</span>
+                    </a>
+                </div>
+                
+                <!-- Movie Info -->
+                <div class="header-center">
+                    <div class="movie-info">
+                        <h1 class="movie-title">@Model?.Phim?.TenPhim</h1>
+                        @if (Model?.CurrentEpisode != null)
+                        {
+                            <span class="episode-info">
+                                @if (Model.CurrentEpisode.SoTapThuTu == 0)
+                                {
+                                    <span>Trailer</span>
+                                }
+                                else
+                                {
+                                    <span>Tập @Model.CurrentEpisode.SoTapThuTu</span>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.CurrentEpisode.TenTap))
+                                {
+                                    <span>- @Model.CurrentEpisode.TenTap</span>
+                                }
+                            </span>
+                        }
+                    </div>
+                </div>
+                
+                <!-- Header Actions -->
+                <div class="header-right">
+                    <div class="quality-selector">
+                        <button class="btn-quality dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fas fa-cog"></i>
+                            <span>Chất lượng</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="changeQuality('1080p')">1080p HD</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="changeQuality('720p')">720p HD</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="changeQuality('480p')">480p</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="changeQuality('360p')">360p</a></li>
+                        </ul>
+                    </div>
+                    
+                    <button class="btn-fullscreen" onclick="toggleFullscreen()">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Video Player Section -->
+    <main class="player-main">
+        <div class="video-container">
+            <div class="video-wrapper" id="videoWrapper">
+                @if (!string.IsNullOrEmpty(Model?.VideoUrl))
+                {
+                    <!-- Enhanced Video Player -->
+                    <video id="videoPlayer" 
+                           class="video-js vjs-default-skin" 
+                           controls 
+                           preload="metadata" 
+                           width="1920"
+                           height="1080"
+                           data-setup='{"fluid": true, "responsive": true, "playbackRates": [0.5, 0.75, 1, 1.25, 1.5, 2]}'
+                           poster="@(Model.Phim?.AnhPhim)">
+                        
+                        <!-- Primary video source -->
+                        @if (ViewBag.HasHLS == true)
+                        {
+                            <source src="@Model.VideoUrl" type="application/x-mpegURL">
+                        }
+                        else
+                        {
+                            <source src="@Model.VideoUrl" type="video/mp4">
+                        }
+                        
+                        <!-- Fallback MP4 source if HLS fails -->
+                        @if (ViewBag.HasHLS == true && !string.IsNullOrEmpty(ViewBag.MP4Url))
+                        {
+                            <source src="@ViewBag.MP4Url" type="video/mp4">
+                        }
+                        
+                        <!-- Additional quality sources -->
+                        @if (!string.IsNullOrEmpty(Model.VideoUrl720))
+                        {
+                            <source src="@Model.VideoUrl720" type="video/mp4" label="720p">
+                        }
+                        @if (!string.IsNullOrEmpty(Model.VideoUrl480))
+                        {
+                            <source src="@Model.VideoUrl480" type="video/mp4" label="480p">
+                        }
+                        @if (!string.IsNullOrEmpty(Model.VideoUrl360))
+                        {
+                            <source src="@Model.VideoUrl360" type="video/mp4" label="360p">
+                        }
+                        
+                        <p class="vjs-no-js">
+                            Để xem video này, vui lòng 
+                            <a href="https://videojs.com/html5-video-support/" target="_blank">kích hoạt JavaScript</a>, 
+                            và cân nhắc nâng cấp lên trình duyệt hỗ trợ
+                            <a href="https://videojs.com/html5-video-support/" target="_blank">HTML5 video</a>.
+                        </p>
+                    </video>
+                }
+                else
+                {
+                    <div class="video-error">
+                        <div class="error-content">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>Không thể tải video</h3>
+                            <p id="errorMessage">Video hiện không khả dụng. Vui lòng thử lại sau.</p>
+                            <div class="error-actions">
+                                <button class="btn btn-primary" onclick="reloadVideo()">
+                                    <i class="fas fa-redo"></i>
+                                    Thử lại
+                                </button>
+                                <a href="@Url.Action("Details", "Phim", new { id = Model?.Phim?.MaPhim })" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i>
+                                    Quay lại trang phim
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+                
+                <!-- Enhanced Video Loading Overlay -->
+                <div class="video-loading" id="videoLoading">
+                    <div class="loading-content">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                        </div>
+                        <p id="loadingMessage">Đang tải video...</p>
+                        <div class="loading-progress">
+                            <div class="progress-bar" id="loadingProgress"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Video Controls Overlay -->
+                <div class="video-controls-overlay" id="videoControlsOverlay">
+                    <div class="center-controls">
+                        <button class="play-pause-btn" id="centerPlayPause">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="side-controls left-controls">
+                        <button class="control-btn" onclick="skipTime(-10)" title="Tua lùi 10s">
+                            <i class="fas fa-undo"></i>
+                            <span>10s</span>
+                        </button>
+                    </div>
+                    
+                    <div class="side-controls right-controls">
+                        <button class="control-btn" onclick="skipTime(10)" title="Tua tới 10s">
+                            <i class="fas fa-redo"></i>
+                            <span>10s</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Episode Navigation -->
+    @if (Model?.Episodes != null && Model.Episodes.Count() > 1)
+    {
+        <section class="episode-navigation">
+            <div class="container-fluid">
+                <div class="episode-nav-header">
+                    <h3>
+                        <i class="fas fa-list"></i>
+                        Danh sách tập (@Model.Episodes.Count())
+                    </h3>
+                    <button class="btn-collapse" data-bs-toggle="collapse" data-bs-target="#episodeList">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                </div>
+                
+                <div class="collapse show" id="episodeList">
+                    <div class="episode-nav-grid">
+                        @foreach (var episode in Model.Episodes.OrderBy(e => e.SoTapThuTu))
+                        {
+                            <a href="@Url.Action("Player", "TapPhim", new { id = episode.MaTap })" 
+                               class="episode-nav-item @(Model.CurrentEpisode?.MaTap == episode.MaTap ? "active" : "")">
+                                <div class="episode-nav-thumbnail">
+                                    @if (episode.SoTapThuTu == 0)
+                                    {
+                                        <div class="thumbnail-placeholder trailer">
+                                            <i class="fas fa-play-circle"></i>
+                                            <span>Trailer</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="thumbnail-placeholder">
+                                            <span class="episode-number">@episode.SoTapThuTu</span>
+                                        </div>
+                                    }
+                                    @if (Model.CurrentEpisode?.MaTap == episode.MaTap)
+                                    {
+                                        <div class="playing-indicator">
+                                            <i class="fas fa-play"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="episode-nav-info">
+                                    <h4 class="episode-nav-title">
+                                        @if (episode.SoTapThuTu == 0)
+                                        {
+                                            <span>Trailer</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Tập @episode.SoTapThuTu</span>
+                                        }
+                                    </h4>
+                                    @if (!string.IsNullOrEmpty(episode.TenTap))
+                                    {
+                                        <p class="episode-nav-subtitle">@episode.TenTap</p>
+                                    }
+                                    @if (episode.ThoiLuong.HasValue)
+                                    {
+                                        <span class="episode-nav-duration">
+                                            <i class="fas fa-clock"></i>
+                                            @episode.ThoiLuong phút
+                                        </span>
+                                    }
+                                </div>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </section>
+    }
+
+    <!-- Movie Info Sidebar (Optional) -->
+    <div class="movie-info-sidebar" id="movieSidebar">
+        <div class="sidebar-header">
+            <h3>Thông tin phim</h3>
+            <button class="btn-close-sidebar" onclick="toggleSidebar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="sidebar-content">
+            <div class="movie-poster-small">
+                @if (!string.IsNullOrEmpty(Model?.Phim?.AnhPhim))
+                {
+                    <img src="@Model.Phim.AnhPhim" alt="@Model.Phim.TenPhim">
+                }
+            </div>
+            
+            <div class="movie-details">
+                <h4>@Model?.Phim?.TenPhim</h4>
+                
+                @if (Model?.Phim?.DiemImdb.HasValue == true)
+                {
+                    <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <span>@Model.Phim.DiemImdb.Value.ToString("F1")/10</span>
+                    </div>
+                }
+                
+                <div class="detail-items">
+                    @if (Model?.Phim?.NamPhatHanh.HasValue == true)
+                    {
+                        <div class="detail-item">
+                            <span class="label">Năm:</span>
+                            <span class="value">@Model.Phim.NamPhatHanh</span>
+                        </div>
+                    }
+                    
+                    @if (Model?.Phim?.TheLoaiPhim != null)
+                    {
+                        <div class="detail-item">
+                            <span class="label">Thể loại:</span>
+                            <span class="value">@Model.Phim.TheLoaiPhim.TenTL</span>
+                        </div>
+                    }
+                    
+                    @if (Model?.Phim?.QuocGia != null)
+                    {
+                        <div class="detail-item">
+                            <span class="label">Quốc gia:</span>
+                            <span class="value">@Model.Phim.QuocGia.TenQG</span>
+                        </div>
+                    }
+                </div>
+                
+                @if (!string.IsNullOrEmpty(Model?.Phim?.MoTaPhim))
+                {
+                    <div class="description">
+                        <h5>Mô tả</h5>
+                        <p>@Model.Phim.MoTaPhim</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Controls -->
+    <div class="bottom-controls">
+        <button class="btn-info" onclick="toggleSidebar()">
+            <i class="fas fa-info-circle"></i>
+            <span>Thông tin</span>
+        </button>
+        
+        <div class="episode-controls">
+            @{
+                var currentIndex = Model?.Episodes?.ToList().FindIndex(e => e.MaTap == Model.CurrentEpisode?.MaTap) ?? -1;
+                var prevEpisode = currentIndex > 0 ? Model?.Episodes?.ElementAt(currentIndex - 1) : null;
+                var nextEpisode = currentIndex < (Model?.Episodes?.Count() - 1) ? Model?.Episodes?.ElementAt(currentIndex + 1) : null;
+            }
+            
+            @if (prevEpisode != null)
+            {
+                <a href="@Url.Action("Player", "TapPhim", new { id = prevEpisode.MaTap })" class="btn-episode-nav prev">
+                    <i class="fas fa-chevron-left"></i>
+                    <span>Tập trước</span>
+                </a>
+            }
+            
+            @if (nextEpisode != null)
+            {
+                <a href="@Url.Action("Player", "TapPhim", new { id = nextEpisode.MaTap })" class="btn-episode-nav next">
+                    <span>Tập tiếp theo</span>
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            }
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Video.js and HLS Support -->
+    <script src="https://vjs.zencdn.net/8.6.1/video.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@videojs/http-streaming@3.0.2/dist/videojs-http-streaming.min.js"></script>
+
+    <script>
+        let player;
+        let isFullscreen = false;
+        let currentEpisodeId = '@Model?.CurrentEpisode?.MaTap';
+        let watchedTime = 0;
+        let totalDuration = 0;
+        
+        $(document).ready(function() {
+            // Wait for videojs to be available
+            if (typeof videojs === 'undefined') {
+                console.error('Video.js is not loaded');
+                showError('Video player không khả dụng');
+                initializeFallbackPlayer();
+                return;
+            }
+
+            // Initialize Video.js player
+            if (document.getElementById('videoPlayer')) {
+                initializePlayer();
+            } else {
+                showError('Video player không khả dụng');
+                initializeFallbackPlayer();
+            }
+
+            // Load video information and test HLS
+            loadVideoInfo();
+            testHLSConnection();
+
+            // Setup keyboard shortcuts
+            setupKeyboardShortcuts();
+            
+            // Setup mouse controls
+            setupMouseControls();
+            
+            // Auto-hide controls
+            setupAutoHideControls();
+        });
+
+        function initializePlayer() {
+            // Determine if we're using HLS
+            const videoUrl = '@(Model?.VideoUrl ?? "")';
+            const hlsUrl = '@(ViewBag.HLSUrl ?? "")';
+            const mp4Url = '@(ViewBag.MP4Url ?? "")';
+            const hasHLS = '@(ViewBag.HasHLS ?? false)';
+            const isHLS = hasHLS === 'True' || videoUrl.includes('.m3u8');
+            
+            // Debug logging
+            console.log('Debug - Video URLs:');
+            console.log('VideoUrl:', videoUrl);
+            console.log('HLSUrl:', hlsUrl);
+            console.log('MP4Url:', mp4Url);
+            console.log('HasHLS:', hasHLS);
+            console.log('IsHLS:', isHLS);
+            
+            const playerConfig = {
+                controls: true,
+                fluid: true,
+                responsive: true,
+                playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
+                html5: {
+                    hls: {
+                        withCredentials: false,
+                        overrideNative: typeof videojs !== 'undefined' && videojs.browser && !videojs.browser.IS_SAFARI
+                    }
+                },
+                plugins: {
+                    hotkeys: {
+                        volumeStep: 0.1,
+                        seekStep: 5,
+                        enableModifiersForNumbers: false
+                    }
+                }
+            };
+
+            player = videojs('videoPlayer', playerConfig, function() {
+                console.log('Player ready');
+                
+                // If HLS is detected, ensure proper handling
+                if (isHLS && this.tech && this.tech().hls) {
+                    console.log('HLS stream detected and loaded');
+                    
+                    // Handle HLS quality levels
+                    this.tech().hls.on('loadedmetadata', function() {
+                        console.log('HLS metadata loaded');
+                        updateQualitySelector();
+                    });
+                }
+                
+                setupPlayerEvents();
+                hideLoading();
+            });
+        }
+
+        // Fallback video player nếu Video.js không available
+        function initializeFallbackPlayer() {
+            const videoElement = document.getElementById('videoPlayer');
+            if (videoElement) {
+                // Convert video-js element to standard HTML5 video
+                videoElement.className = 'video-fallback';
+                videoElement.controls = true;
+                
+                // Add basic event listeners
+                videoElement.addEventListener('loadstart', () => showLoading('Đang tải video...'));
+                videoElement.addEventListener('canplay', () => hideLoading());
+                videoElement.addEventListener('error', () => {
+                    hideLoading();
+                    showError('Không thể tải video. Vui lòng thử lại sau.');
+                });
+                
+                console.log('Using fallback HTML5 video player');
+            }
+        }
+
+        function setupPlayerEvents() {
+            // Loading events
+            player.on('loadstart', function() {
+                showLoading('Đang tải video...');
+                updateLoadingProgress(0);
+            });
+
+            player.on('progress', function() {
+                // Update loading progress based on buffered data
+                if (player.buffered().length > 0) {
+                    const bufferedEnd = player.buffered().end(0);
+                    const duration = player.duration();
+                    if (duration > 0) {
+                        const progress = (bufferedEnd / duration) * 100;
+                        updateLoadingProgress(progress);
+                    }
+                }
+            });
+
+            player.on('canplay', function() {
+                hideLoading();
+                totalDuration = player.duration();
+                
+                // Load watch progress after video is ready
+                loadWatchProgress();
+            });
+
+            player.on('playing', function() {
+                hideLoading();
+                updateCenterPlayButton(false);
+            });
+
+            player.on('pause', function() {
+                updateCenterPlayButton(true);
+                saveWatchProgress(); // Save progress when paused
+            });
+
+            player.on('timeupdate', function() {
+                watchedTime = player.currentTime();
+                // Save progress every 10 seconds
+                if (Math.floor(watchedTime) % 10 === 0) {
+                    saveWatchProgress();
+                }
+            });
+
+            player.on('ended', function() {
+                // Mark as completed and save
+                saveWatchProgress(true);
+                
+                // Auto play next episode if available
+                const nextEpisodeBtn = document.querySelector('.btn-episode-nav.next');
+                if (nextEpisodeBtn) {
+                    setTimeout(() => {
+                        if (confirm('Tập đã kết thúc. Bạn có muốn xem tập tiếp theo?')) {
+                            nextEpisodeBtn.click();
+                        }
+                    }, 2000);
+                }
+            });
+
+            player.on('error', function() {
+                hideLoading();
+                const error = player.error();
+                console.error('Video error:', error);
+                showError('Lỗi phát video: ' + (error?.message || 'Không xác định'));
+            });
+
+            // Quality change events
+            player.on('sourcechange', function() {
+                showLoading('Đang chuyển chất lượng...');
+            });
+        }
+
+        function loadVideoInfo() {
+            if (!currentEpisodeId) return;
+            
+            $.get('/TapPhim/GetVideoStreamInfo/' + currentEpisodeId)
+                .done(function(data) {
+                    if (data.hasVideo && !data.isReady) {
+                        showLoading('Video đang được xử lý, vui lòng đợi...');
+                        // Poll for video status
+                        setTimeout(() => checkVideoStatus(data.videoId), 5000);
+                    }
+                })
+                .fail(function() {
+                    console.error('Failed to load video info');
+                });
+        }
+
+        function checkVideoStatus(videoId) {
+            if (!videoId) return;
+            
+            $.get('/TapPhim/CheckVideoStatus?videoId=' + videoId)
+                .done(function(data) {
+                    if (data.status === 'ready') {
+                        location.reload(); // Reload to get the ready video
+                    } else if (data.status === 'processing') {
+                        setTimeout(() => checkVideoStatus(videoId), 10000);
+                    } else {
+                        showError('Video không thể xử lý: ' + data.message);
+                    }
+                });
+        }
+
+        function setupKeyboardShortcuts() {
+            $(document).keydown(function(e) {
+                if (!player) return;
+                
+                // Don't handle shortcuts if user is typing in an input
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                
+                switch(e.keyCode) {
+                    case 32: // Space
+                        e.preventDefault();
+                        togglePlayPause();
+                        break;
+                    case 70: // F
+                        e.preventDefault();
+                        toggleFullscreen();
+                        break;
+                    case 77: // M
+                        e.preventDefault();
+                        player.muted(!player.muted());
+                        break;
+                    case 37: // Left arrow
+                        e.preventDefault();
+                        skipTime(-10);
+                        break;
+                    case 39: // Right arrow
+                        e.preventDefault();
+                        skipTime(10);
+                        break;
+                    case 38: // Up arrow
+                        e.preventDefault();
+                        changeVolume(0.1);
+                        break;
+                    case 40: // Down arrow
+                        e.preventDefault();
+                        changeVolume(-0.1);
+                        break;
+                }
+            });
+        }
+
+        function setupMouseControls() {
+            // Center play/pause button
+            $('#centerPlayPause').click(function() {
+                togglePlayPause();
+            });
+
+            // Double click to fullscreen
+            $('#videoWrapper').dblclick(function() {
+                toggleFullscreen();
+            });
+
+            // Click on video to play/pause
+            $('#videoPlayer').click(function() {
+                togglePlayPause();
+            });
+        }
+
+        function setupAutoHideControls() {
+            let controlsTimeout;
+            let isMouseOverControls = false;
+
+            function hideControlsAfterDelay() {
+                clearTimeout(controlsTimeout);
+                controlsTimeout = setTimeout(() => {
+                    if (!isMouseOverControls && !player.paused()) {
+                        $('body').addClass('controls-hidden');
+                    }
+                }, 3000);
+            }
+
+            $(document).mousemove(function() {
+                $('body').removeClass('controls-hidden');
+                hideControlsAfterDelay();
+            });
+
+            // Don't hide controls when hovering over them
+            $('.player-header, .bottom-controls, .episode-navigation').hover(
+                function() { isMouseOverControls = true; },
+                function() { isMouseOverControls = false; }
+            );
+
+            hideControlsAfterDelay();
+        }
+
+        // Player control functions
+        function togglePlayPause() {
+            if (player.paused()) {
+                player.play();
+            } else {
+                player.pause();
+            }
+        }
+
+        function skipTime(seconds) {
+            const currentTime = player.currentTime();
+            const newTime = Math.max(0, Math.min(currentTime + seconds, player.duration()));
+            player.currentTime(newTime);
+            
+            // Show skip indicator
+            showSkipIndicator(seconds);
+        }
+
+        function changeVolume(delta) {
+            const currentVolume = player.volume();
+            const newVolume = Math.max(0, Math.min(currentVolume + delta, 1));
+            player.volume(newVolume);
+        }
+
+        function showSkipIndicator(seconds) {
+            const indicator = $('<div class="skip-indicator">' + 
+                (seconds > 0 ? '+' : '') + seconds + 's' + 
+                '</div>');
+            
+            $('#videoWrapper').append(indicator);
+            
+            setTimeout(() => {
+                indicator.fadeOut(() => indicator.remove());
+            }, 1000);
+        }
+
+        function updateCenterPlayButton(showPlay) {
+            const icon = $('#centerPlayPause i');
+            if (showPlay) {
+                icon.removeClass('fa-pause').addClass('fa-play');
+            } else {
+                icon.removeClass('fa-play').addClass('fa-pause');
+            }
+        }
+
+        function reloadVideo() {
+            if (player) {
+                showLoading('Đang tải lại video...');
+                player.load();
+            } else {
+                location.reload();
+            }
+        }
+
+        // Loading and error functions
+        function showLoading(message = 'Đang tải video...') {
+            $('#loadingMessage').text(message);
+            $('#videoLoading').fadeIn();
+        }
+
+        function hideLoading() {
+            $('#videoLoading').fadeOut();
+        }
+
+        function updateLoadingProgress(percent) {
+            $('#loadingProgress').css('width', percent + '%');
+        }
+
+        function showError(message) {
+            $('#errorMessage').text(message);
+            $('.video-error').show();
+            $('#videoLoading').hide();
+        }
+
+        function loadWatchProgress() {
+            if (!currentEpisodeId || !@Json.Serialize(Model?.IsUserLoggedIn ?? false)) return;
+            
+            $.get('/TapPhim/GetWatchProgress/' + currentEpisodeId)
+                .done(function(data) {
+                    if (data.hasProgress && data.currentTime > 30) { // Only resume if more than 30 seconds
+                        const minutes = Math.floor(data.currentTime / 60);
+                        const seconds = data.currentTime % 60;
+                        const timeStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+                        
+                        if (confirm(`Bạn đã xem đến ${timeStr}. Tiếp tục từ vị trí này?`)) {
+                            player.currentTime(data.currentTime);
+                        }
+                    }
+                })
+                .fail(function() {
+                    console.log('Could not load watch progress (user may not be logged in)');
+                });
+        }
+
+        function saveWatchProgress(isCompleted = false) {
+            if (!currentEpisodeId || !@Json.Serialize(Model?.IsUserLoggedIn ?? false)) return;
+            
+            // Save to localStorage as backup
+            localStorage.setItem('watch_progress_' + currentEpisodeId, JSON.stringify({
+                episodeId: currentEpisodeId,
+                currentTime: Math.floor(watchedTime),
+                duration: Math.floor(totalDuration),
+                timestamp: Date.now(),
+                isCompleted: isCompleted
+            }));
+            
+            // Save to server
+            const data = {
+                episodeId: currentEpisodeId,
+                currentTime: Math.floor(watchedTime),
+                duration: Math.floor(totalDuration),
+                isCompleted: isCompleted
+            };
+            
+            $.ajax({
+                url: '/TapPhim/SaveWatchProgress',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                }
+            }).fail(function() {
+                console.log('Failed to save watch progress to server');
+            });
+        }
+
+        // Fullscreen functions
+        function toggleFullscreen() {
+            if (!isFullscreen) {
+                enterFullscreen();
+            } else {
+                exitFullscreen();
+            }
+        }
+
+        function enterFullscreen() {
+            const elem = document.getElementById('videoWrapper');
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+
+        function exitFullscreen() {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+
+        // Listen for fullscreen changes
+        document.addEventListener('fullscreenchange', function() {
+            isFullscreen = !!document.fullscreenElement;
+            updateFullscreenButton();
+        });
+
+        function updateFullscreenButton() {
+            const btn = document.querySelector('.btn-fullscreen i');
+            if (btn) {
+                if (isFullscreen) {
+                    btn.className = 'fas fa-compress';
+                } else {
+                    btn.className = 'fas fa-expand';
+                }
+            }
+        }
+
+        // Quality change function - Enhanced for HLS and MP4
+        function changeQuality(quality) {
+            if (!player || !currentEpisodeId) return;
+            
+            const isHLSActive = '@(ViewBag.IsHLSPrimary ?? false)' === 'True';
+            
+            if (isHLSActive && player.tech().hls) {
+                // Use HLS quality switching
+                changeHLSQuality(quality);
+                return;
+            }
+            
+            // Fallback to MP4 quality switching
+            showLoading('Đang thay đổi chất lượng...');
+            
+            // Get current time to resume from
+            const currentTime = player.currentTime();
+            
+            // Construct quality URL based on available options
+            let qualityUrl = '';
+            switch(quality) {
+                case '1080p':
+                    qualityUrl = `http://localhost:5288/videos/${currentEpisodeId}/1080p.m3u8`;
+                    break;
+                case '720p':
+                    qualityUrl = `http://localhost:5288/videos/${currentEpisodeId}/720p.m3u8`;
+                    break;
+                case '480p':
+                    qualityUrl = `http://localhost:5288/videos/${currentEpisodeId}/480p.m3u8`;
+                    break;
+                case '360p':
+                    qualityUrl = `http://localhost:5288/videos/${currentEpisodeId}/360p.m3u8`;
+                    break;
+                default:
+                    qualityUrl = `http://localhost:5288/videos/${currentEpisodeId}/master.m3u8`;
+            }
+            
+            try {
+                player.src({ 
+                    src: qualityUrl, 
+                    type: qualityUrl.includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4' 
+                });
+                
+                player.ready(() => {
+                    player.currentTime(currentTime);
+                    hideLoading();
+                    console.log('Quality changed to:', quality);
+                });
+            } catch (error) {
+                hideLoading();
+                console.error('Failed to change quality:', error);
+                alert('Không thể thay đổi chất lượng video');
+            }
+        }
+
+        // HLS Quality Selector Functions
+        function updateQualitySelector() {
+            if (!player || !player.tech || !player.tech().hls) return;
+            
+            try {
+                const hls = player.tech().hls;
+                const qualityLevels = hls.playlists && hls.playlists.master && hls.playlists.master.playlists;
+                
+                if (qualityLevels && qualityLevels.length > 1) {
+                    // Clear existing quality options
+                    $('.quality-selector .dropdown-menu').empty();
+                    
+                    // Add auto option
+                    $('.quality-selector .dropdown-menu').append(
+                        '<li><a class="dropdown-item quality-option" href="#" data-quality="auto">Auto</a></li>'
+                    );
+                    
+                    // Add quality options
+                    qualityLevels.forEach((level, index) => {
+                        const height = level.attributes && level.attributes.RESOLUTION 
+                            ? level.attributes.RESOLUTION.height 
+                            : 'Unknown';
+                        const bandwidth = level.attributes && level.attributes.BANDWIDTH 
+                            ? Math.round(level.attributes.BANDWIDTH / 1000) + 'k'
+                            : '';
+                            
+                        const label = height !== 'Unknown' ? `${height}p ${bandwidth}` : `Quality ${index + 1}`;
+                        
+                        $('.quality-selector .dropdown-menu').append(
+                            `<li><a class="dropdown-item quality-option" href="#" data-quality="${index}">${label}</a></li>`
+                        );
+                    });
+                    
+                    // Add click handlers
+                    $('.quality-option').click(function(e) {
+                        e.preventDefault();
+                        const quality = $(this).data('quality');
+                        changeHLSQuality(quality);
+                    });
+                }
+            } catch (error) {
+                console.warn('Error updating quality selector:', error);
+            }
+        }
+
+        function changeHLSQuality(qualityIndex) {
+            if (!player || !player.tech || !player.tech().hls) return;
+            
+            try {
+                const hls = player.tech().hls;
+                
+                if (qualityIndex === 'auto') {
+                    // Enable auto quality selection
+                    if (hls.playlists && hls.playlists.master && hls.playlists.master.playlists) {
+                        hls.playlists.master.playlists.forEach(playlist => {
+                            playlist.disabled = false;
+                        });
+                    }
+                    console.log('HLS quality set to auto');
+                } else {
+                    // Disable all except selected quality
+                    if (hls.playlists && hls.playlists.master && hls.playlists.master.playlists) {
+                        hls.playlists.master.playlists.forEach((playlist, index) => {
+                            playlist.disabled = index !== parseInt(qualityIndex);
+                        });
+                    }
+                    console.log('HLS quality set to index:', qualityIndex);
+                }
+            } catch (error) {
+                console.warn('Error changing HLS quality:', error);
+            }
+        }
+
+        // Sidebar functions
+        function toggleSidebar() {
+            $('#movieSidebar').toggleClass('open');
+        }
+
+        // Test HLS connection function
+        function testHLSConnection() {
+            if (!currentEpisodeId) return;
+            
+            console.log('Testing HLS connection for episode:', currentEpisodeId);
+            
+            $.get('/TapPhim/test-hls/' + currentEpisodeId)
+                .done(function(data) {
+                    console.log('HLS Test Result:', data);
+                    if (!data.success) {
+                        console.warn('HLS connection failed, may fallback to MP4');
+                    }
+                })
+                .fail(function() {
+                    console.warn('HLS test endpoint failed');
+                });
+        }
+
+        // Clean up when leaving page
+        $(window).on('beforeunload', function() {
+            if (player) {
+                saveWatchProgress();
+                player.dispose();
+            }
+        });
+    </script>
+</body>
+</html>

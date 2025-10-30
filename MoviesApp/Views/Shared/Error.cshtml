@@ -1,0 +1,38 @@
+﻿@model ErrorViewModel
+@{
+    ViewData["Title"] = "Có lỗi xảy ra";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/error.css" />
+}
+
+<div class="error-container">
+    <div class="error-content">
+        <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        
+        <h1 class="error-title">Oops! Có lỗi xảy ra</h1>
+        <p class="error-subtitle">
+            Xin lỗi, có vấn đề xảy ra khi xử lý yêu cầu của bạn. Vui lòng thử lại sau.
+        </p>
+        
+        <div class="error-actions">
+            <a href="/" class="btn-home">
+                <i class="fas fa-home me-2"></i>Về trang chủ
+            </a>
+            <a href="javascript:history.back()" class="btn-back">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại
+            </a>
+        </div>
+        
+        @if (Model?.ShowRequestId == true)
+        {
+            <div class="request-id">
+                <strong><i class="fas fa-info-circle me-2"></i>Request ID:</strong> 
+                <code>@Model.RequestId</code>
+            </div>
+        }
+    </div>
+</div>

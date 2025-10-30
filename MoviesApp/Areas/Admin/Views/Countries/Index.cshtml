@@ -1,0 +1,215 @@
+@model IEnumerable<MoviesApp.Models.QuocGia>
+
+@{
+    ViewData["Title"] = "Quốc gia";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4>Quản lý Quốc gia</h4>
+        <p class="text-muted">Tổng: @Model.Count() quốc gia</p>
+    </div>
+</div>
+
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h5 class="mb-0"><i class="fas fa-globe me-2"></i>Danh sách Quốc gia</h5>
+    </div>
+    <div class="card-body">
+        <!-- Add New Country -->
+        <form id="addCountryForm" class="mb-4">
+            <div class="row">
+                <div class="col-md-8">
+                    <input type="text" class="form-control" id="newCountryName" placeholder="Tên quốc gia mới" required>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-admin-primary w-100" type="submit">
+                        <i class="fas fa-plus me-2"></i>Thêm quốc gia
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Countries List -->
+        <div class="table-responsive">
+            <table class="table table-hover" id="countriesTable">
+                <thead>
+                    <tr>
+                        <th>Mã quốc gia</th>
+                        <th>Tên quốc gia</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var country in Model)
+                    {
+                        <tr data-id="@country.MaQG">
+                            <td><span class="badge bg-secondary">@country.MaQG</span></td>
+                            <td class="country-name">@country.TenQG</td>
+                            <td>
+                                <button class="btn btn-sm btn-warning me-1" onclick="editCountry('@country.MaQG', '@country.TenQG')" title="Chỉnh sửa">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteCountry('@country.MaQG')" title="Xóa">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editCountryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chỉnh sửa Quốc gia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCountryForm">
+                    <input type="hidden" id="editCountryId">
+                    <div class="mb-3">
+                        <label for="editCountryName" class="form-label">Tên quốc gia</label>
+                        <input type="text" class="form-control" id="editCountryName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-admin-primary" onclick="saveCountryEdit()">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add Country
+        $('#addCountryForm').submit(function(e) {
+            e.preventDefault();
+            const name = $('#newCountryName').val().trim();
+            
+            if (!name) {
+                alert('Vui lòng nhập tên quốc gia');
+                return;
+            }
+            
+            $.post('@Url.Action("Create")', { tenQuocGia: name }, function(response) {
+                if (response.success) {
+                    // Add to table
+                    const newRow = `
+                        <tr data-id="${response.country.maQG}">
+                            <td><span class="badge bg-secondary">${response.country.maQG}</span></td>
+                            <td class="country-name">${response.country.tenQuocGia}</td>
+                            <td>
+                                <button class="btn btn-sm btn-warning me-1" onclick="editCountry('${response.country.maQG}', '${response.country.tenQuocGia}')" title="Chỉnh sửa">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteCountry('${response.country.maQG}')" title="Xóa">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    $('#countriesTable tbody').append(newRow);
+                    $('#newCountryName').val('');
+                    
+                    // Show success message
+                    const alertHtml = `
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>${response.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    `;
+                    $('.admin-card').prepend(alertHtml);
+                    
+                    // Auto hide alert
+                    setTimeout(() => $('.alert').fadeOut(), 3000);
+                } else {
+                    alert(response.message);
+                }
+            }).fail(function() {
+                alert('Có lỗi xảy ra khi thêm quốc gia');
+            });
+        });
+
+        // Edit Country
+        function editCountry(id, name) {
+            $('#editCountryId').val(id);
+            $('#editCountryName').val(name);
+            $('#editCountryModal').modal('show');
+        }
+
+        // Save Country Edit
+        function saveCountryEdit() {
+            const id = $('#editCountryId').val();
+            const name = $('#editCountryName').val().trim();
+            
+            if (!name) {
+                alert('Vui lòng nhập tên quốc gia');
+                return;
+            }
+            
+            $.post('@Url.Action("Update")', { maQG: id, tenQuocGia: name }, function(response) {
+                if (response.success) {
+                    // Update table
+                    const row = $(`tr[data-id="${id}"]`);
+                    row.find('.country-name').text(name);
+                    
+                    // Update edit button
+                    row.find('.btn-warning').attr('onclick', `editCountry('${id}', '${name}')`);
+                    
+                    $('#editCountryModal').modal('hide');
+                    
+                    // Show success message
+                    const alertHtml = `
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>${response.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    `;
+                    $('.admin-card').prepend(alertHtml);
+                    
+                    // Auto hide alert
+                    setTimeout(() => $('.alert').fadeOut(), 3000);
+                } else {
+                    alert(response.message);
+                }
+            }).fail(function() {
+                alert('Có lỗi xảy ra khi cập nhật quốc gia');
+            });
+        }
+
+        // Delete Country
+        function deleteCountry(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa quốc gia này?\n\nLưu ý: Không thể xóa nếu đang có phim sử dụng quốc gia này.')) {
+                $.post('@Url.Action("Delete")', { maQG: id }, function(response) {
+                    if (response.success) {
+                        $(`#countriesTable tr[data-id="${id}"]`).remove();
+                        
+                        // Show success message
+                        const alertHtml = `
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="fas fa-check-circle me-2"></i>${response.message}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        `;
+                        $('.admin-card').prepend(alertHtml);
+                        
+                        // Auto hide alert
+                        setTimeout(() => $('.alert').fadeOut(), 3000);
+                    } else {
+                        alert(response.message);
+                    }
+                }).fail(function() {
+                    alert('Có lỗi xảy ra khi xóa quốc gia');
+                });
+            }
+        }
+    </script>
+}

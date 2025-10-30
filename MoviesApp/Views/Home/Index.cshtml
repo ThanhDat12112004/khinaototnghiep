@@ -1,0 +1,318 @@
+@model IEnumerable<MoviesApp.Models.Phim>
+@{
+    ViewData["Title"] = "Trang chủ";
+}
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-slider">
+        @if (Model != null && Model.Any())
+        {
+            var featuredMovie = Model.FirstOrDefault();
+            if (featuredMovie != null)
+            {
+                <div class="hero-slide active" style="background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('@(featuredMovie.AnhPhim ?? "https://via.placeholder.com/1920x1080/141414/ffffff?text=" + featuredMovie.TenPhim)");">
+                    <div class="container">
+                        <div class="row align-items-center">
+                            <div class="col-lg-6">
+                                <div class="hero-content" data-aos="fade-up">
+                                    <div class="hero-badge">
+                                        <i class="fas fa-fire"></i>
+                                        <span>Phim hot</span>
+                                    </div>
+                                    <h1 class="hero-title">@featuredMovie.TenPhim</h1>
+                                    <p class="hero-description">
+                                        @(featuredMovie.MoTa ?? "Một bộ phim đặc sắc không thể bỏ lỡ với nội dung hấp dẫn và diễn xuất tuyệt vời.")
+                                    </p>
+                                    <div class="hero-meta">
+                                        <span class="meta-item"><i class="fas fa-calendar"></i> @featuredMovie.NamSanXuat</span>
+                                        <span class="meta-item"><i class="fas fa-globe"></i> @(featuredMovie.QuocGia?.TenQuocGia ?? "N/A")</span>
+                                        @if (featuredMovie.DiemImdb.HasValue)
+                                        {
+                                            <span class="meta-item"><i class="fas fa-star"></i> @featuredMovie.DiemImdb/10</span>
+                                        }
+                                        <span class="meta-item age-rating">HD</span>
+                                    </div>
+                                    <div class="hero-actions">
+                                        <a href="@Url.Action("Details", "Phim", new { id = featuredMovie.PhimId })" class="btn btn-primary btn-play">
+                                            <i class="fas fa-play"></i>
+                                            Xem ngay
+                                        </a>
+                                        <a href="@Url.Action("Details", "Phim", new { id = featuredMovie.PhimId })" class="btn btn-outline-light btn-info">
+                                            <i class="fas fa-info-circle"></i>
+                                            Chi tiết
+                                        </a>
+                                        <button class="btn btn-icon btn-wishlist" data-movie-id="@featuredMovie.PhimId">
+                                            <i class="far fa-heart"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="hero-slide active" style="background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('https://via.placeholder.com/1920x1080/141414/ffffff?text=Phim+Hay');">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-lg-6">
+                            <div class="hero-content" data-aos="fade-up">
+                                <div class="hero-badge">
+                                    <i class="fas fa-film"></i>
+                                    <span>Chào mừng</span>
+                                </div>
+                                <h1 class="hero-title">CCFilm</h1>
+                                <p class="hero-description">
+                                    Khám phá thế giới điện ảnh với hàng ngàn bộ phim chất lượng cao
+                                </p>
+                                <div class="hero-actions">
+                                    <a href="@Url.Action("Index", "Phim")" class="btn btn-primary btn-play">
+                                        <i class="fas fa-search"></i>
+                                        Khám phá ngay
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    </div>
+</section>
+
+<!-- Movie Sections -->
+<div class="container-fluid px-4">
+    <!-- Trending Movies -->
+    <section class="movie-section" data-aos="fade-up">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-fire"></i>
+                Phim thịnh hành
+            </h2>
+            <a href="@Url.Action("Index", "Phim")" class="section-link">
+                Xem tất cả <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        <div class="movie-grid">
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var phim in Model.Take(12))
+                {
+                    <div class="movie-card" data-aos="zoom-in" data-aos-delay="@(Model.ToList().IndexOf(phim) * 50)">
+                        <div class="movie-poster">
+                            <img src="@(phim.AnhPhim ?? "https://via.placeholder.com/300x450/141414/ffffff?text=" + Uri.EscapeUriString(phim.TenPhim))" alt="@phim.TenPhim" loading="lazy">
+                            
+                            <div class="poster-overlay">
+                                <a href="@Url.Action("Details", "Phim", new { id = phim.MaPhim })" class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                            </div>
+                            
+                            <div class="movie-quality">HD</div>
+                            
+                            @if (phim.DiemImdb.HasValue)
+                            {
+                                <div class="movie-rating">
+                                    <i class="fas fa-star"></i>
+                                    @phim.DiemImdb.Value.ToString("F1")
+                                </div>
+                            }
+                        </div>
+                        <div class="movie-info">
+                            <h3 class="movie-title">@phim.TenPhim</h3>
+                            <div class="movie-meta">
+                                <span class="movie-year">
+                                    <i class="fas fa-calendar"></i>
+                                    @(phim.NamPhatHanh ?? 2024)
+                                </span>
+                                <span class="movie-genre">
+                                    @(phim.TheLoaiPhim?.TenTheLoai ?? "Phim")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                @for (int i = 1; i <= 12; i++)
+                {
+                    <div class="movie-card" data-aos="zoom-in" data-aos-delay="@(i * 50)">
+                        <div class="movie-poster">
+                            <img src="https://via.placeholder.com/300x450/141414/ffffff?text=Phim+@i" alt="Phim @i" loading="lazy">
+                            <div class="poster-overlay">
+                                <div class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            </div>
+                            <div class="movie-quality">HD</div>
+                            <div class="movie-rating">
+                                <i class="fas fa-star"></i>
+                                @(7.0 + (i * 0.1))
+                            </div>
+                        </div>
+                        <div class="movie-info">
+                            <h3 class="movie-title">Phim hay số @i</h3>
+                            <div class="movie-meta">
+                                <span class="movie-year">
+                                    <i class="fas fa-calendar"></i>
+                                    @(2020 + i)
+                                </span>
+                                <span class="movie-genre">Hành động</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </section>
+
+    <!-- New Movies -->
+    <section class="movie-section" data-aos="fade-up" data-aos-delay="100">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-plus-circle"></i>
+                Phim mới cập nhật
+            </h2>
+            <a href="@Url.Action("Index", "Phim")" class="section-link">
+                Xem tất cả <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        <div class="movie-grid">
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var phim in Model.OrderByDescending(p => p.NgayTao).Take(12))
+                {
+                    <div class="movie-card" data-aos="zoom-in" data-aos-delay="@(Model.OrderByDescending(p => p.NgayTao).ToList().IndexOf(phim) * 50)">
+                        <div class="movie-poster">
+                            <img src="@(phim.AnhPhim ?? "https://via.placeholder.com/300x450/141414/ffffff?text=" + Uri.EscapeUriString(phim.TenPhim))" alt="@phim.TenPhim" loading="lazy">
+                            
+                            <div class="poster-overlay">
+                                <a href="@Url.Action("Details", "Phim", new { id = phim.MaPhim })" class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                            </div>
+                            
+                            <div class="movie-quality">MỚI</div>
+                            
+                            @if (phim.DiemImdb.HasValue)
+                            {
+                                <div class="movie-rating">
+                                    <i class="fas fa-star"></i>
+                                    @phim.DiemImdb.Value.ToString("F1")
+                                </div>
+                            }
+                        </div>
+                        <div class="movie-info">
+                            <h3 class="movie-title">@phim.TenPhim</h3>
+                            <div class="movie-meta">
+                                <span class="movie-year">
+                                    <i class="fas fa-calendar"></i>
+                                    @(phim.NamPhatHanh ?? 2024)
+                                </span>
+                                <span class="movie-genre">
+                                    @(phim.TheLoaiPhim?.TenTheLoai ?? "Phim")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                @for (int i = 1; i <= 12; i++)
+                {
+                    <div class="movie-card" data-aos="zoom-in" data-aos-delay="@(i * 50)">
+                        <div class="movie-poster">
+                            <img src="https://via.placeholder.com/300x450/141414/ffffff?text=New+@i" alt="Phim mới @i" loading="lazy">
+                            <div class="poster-overlay">
+                                <div class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            </div>
+                            <div class="movie-quality">MỚI</div>
+                            <div class="movie-rating">
+                                <i class="fas fa-star"></i>
+                                @(8.0 + (i * 0.1))
+                            </div>
+                        </div>
+                        <div class="movie-info">
+                            <h3 class="movie-title">Phim mới @i</h3>
+                            <div class="movie-meta">
+                                <span class="movie-year">
+                                    <i class="fas fa-calendar"></i>
+                                    2024
+                                </span>
+                                <span class="movie-genre">Hài</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </section>
+
+
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Movie card interactions
+            $('.movie-card').on('mouseenter', function() {
+                $(this).addClass('animate-fade-in-up');
+            });
+
+            // Wishlist functionality
+            $('.btn-wishlist').on('click', function(e) {
+                e.preventDefault();
+                const $btn = $(this);
+                const $icon = $btn.find('i');
+                const movieId = $btn.data('movie-id');
+                
+                if ($icon.hasClass('far')) {
+                    $icon.removeClass('far').addClass('fas');
+                    $btn.addClass('active');
+                    // Add to wishlist API call here
+                } else {
+                    $icon.removeClass('fas').addClass('far');
+                    $btn.removeClass('active');
+                    // Remove from wishlist API call here
+                }
+            });
+
+            // Smooth scroll for navigation
+            $('a[href^="#"]').on('click', function(e) {
+                e.preventDefault();
+                const target = $($(this).attr('href'));
+                if (target.length) {
+                    $('html, body').animate({
+                        scrollTop: target.offset().top - 80
+                    }, 500);
+                }
+            });
+
+            // Lazy loading for better performance
+            if ('IntersectionObserver' in window) {
+                const imageObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            img.src = img.dataset.src || img.src;
+                            img.classList.remove('lazy');
+                            imageObserver.unobserve(img);
+                        }
+                    });
+                });
+
+                document.querySelectorAll('img[loading="lazy"]').forEach(img => {
+                    imageObserver.observe(img);
+                });
+            }
+        });
+    </script>
+}

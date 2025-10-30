@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HLS Video theo ID - Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    .video-container {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    video {
+      width: 100%;
+      max-width: 600px;
+      border-radius: 10px;
+      background: #000;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      width: 250px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #3498db;
+      border: none;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-left: 10px;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>🎬 Xem Video HLS theo ID</h1>
+
+    <div class="video-container">
+      <input type="text" id="videoIdInput" placeholder="Nhập ID video (ví dụ: 1234)" />
+      <button onclick="loadHLSById()">Phát video</button>
+      <br /><br />
+      <video id="hlsVideo" controls></video>
+    </div>
+  </div>
+
+  <!-- HLS.js -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script>
+    function loadHLSById() {
+      const input = document.getElementById('videoIdInput');
+      const id = input.value.trim();
+      if (!id) {
+        alert("Vui lòng nhập ID video!");
+        return;
+      }
+
+      const url = `http://localhost:5288/videos/${id}/master.m3u8`;
+      loadHLSVideo(url);
+    }
+
+    function loadHLSVideo(url) {
+      const video = document.getElementById('hlsVideo');
+
+      if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          video.play().catch(e => console.error('HLS Play Error:', e));
+        });
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          console.error('HLS Error:', data);
+          alert('HLS Error: ' + data.details);
+        });
+        console.log('Đã tải video từ:', url);
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = url;
+        video.play().catch(e => {
+          alert('Native HLS Error: ' + e.message);
+          console.error('Native HLS Error:', e);
+        });
+      } else {
+        alert('Trình duyệt không hỗ trợ HLS!');
+      }
+    }
+  </script>
+</body>
+
+</html>

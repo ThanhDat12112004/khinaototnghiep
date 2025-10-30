@@ -1,0 +1,240 @@
+@model MoviesApp.Models.Phim
+
+@{
+    ViewData["Title"] = "Chỉnh sửa phim";
+    ViewData["Breadcrumb"] = "<li class='breadcrumb-item'><a href='/Admin'>Dashboard</a></li><li class='breadcrumb-item'><a href='/Admin/MovieManagement'>Quản lý Phim</a></li><li class='breadcrumb-item active'>Chỉnh sửa phim</li>";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-edit me-2"></i>Chỉnh sửa phim: @Model.TenPhim</h2>
+    <div>
+        <a asp-action="Details" asp-route-id="@Model.MaPhim" class="btn btn-outline-info me-2">
+            <i class="fas fa-eye me-2"></i>Xem chi tiết
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Cập nhật thông tin phim</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <input type="hidden" asp-for="MaPhim" />
+                    <input type="hidden" asp-for="NgayTao" />
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label asp-for="TenPhim" class="form-label required">Tên phim</label>
+                                <input asp-for="TenPhim" class="form-control" placeholder="Nhập tên phim" />
+                                <span asp-validation-for="TenPhim" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label asp-for="NamPhatHanh" class="form-label">Năm phát hành</label>
+                                <input asp-for="NamPhatHanh" class="form-control" type="number" min="1900" max="2030" />
+                                <span asp-validation-for="NamPhatHanh" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label asp-for="MaDM" class="form-label required">Danh mục</label>
+                                <select asp-for="MaDM" class="form-select" asp-items="ViewBag.MaDM">
+                                    <option value="">-- Chọn danh mục --</option>
+                                </select>
+                                <span asp-validation-for="MaDM" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label asp-for="MaTL" class="form-label required">Thể loại</label>
+                                <select asp-for="MaTL" class="form-select" asp-items="ViewBag.MaTL">
+                                    <option value="">-- Chọn thể loại --</option>
+                                </select>
+                                <span asp-validation-for="MaTL" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label asp-for="MaQG" class="form-label required">Quốc gia</label>
+                                <select asp-for="MaQG" class="form-select" asp-items="ViewBag.MaQG">
+                                    <option value="">-- Chọn quốc gia --</option>
+                                </select>
+                                <span asp-validation-for="MaQG" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="DaoDien" class="form-label">Đạo diễn</label>
+                                <input asp-for="DaoDien" class="form-control" placeholder="Tên đạo diễn" />
+                                <span asp-validation-for="DaoDien" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="DienVien" class="form-label">Diễn viên</label>
+                                <input asp-for="DienVien" class="form-control" placeholder="Danh sách diễn viên chính" />
+                                <span asp-validation-for="DienVien" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="MoTa" class="form-label">Mô tả phim</label>
+                        <textarea asp-for="MoTa" class="form-control" rows="4" placeholder="Mô tả nội dung phim"></textarea>
+                        <span asp-validation-for="MoTa" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="AnhPhim" class="form-label">URL Poster phim</label>
+                        <input asp-for="AnhPhim" class="form-control" placeholder="https://example.com/poster.jpg" />
+                        <span asp-validation-for="AnhPhim" class="text-danger"></span>
+                        <div class="form-text">Nhập URL hình ảnh poster của phim</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">                            <div class="mb-3">
+                                <label asp-for="ThoiLuongPhim" class="form-label">Thời lượng (phút)</label>
+                                <input asp-for="ThoiLuongPhim" class="form-control" type="number" min="1" placeholder="90" />
+                                <span asp-validation-for="ThoiLuongPhim" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">                            <div class="mb-3">
+                                <label asp-for="XepHang" class="form-label">Độ tuổi</label>
+                                <select asp-for="XepHang" class="form-select">
+                                    <option value="">-- Chọn độ tuổi --</option>
+                                    <option value="P">P - Mọi lứa tuổi</option>
+                                    <option value="T13">T13 - Từ 13 tuổi</option>
+                                    <option value="T16">T16 - Từ 16 tuổi</option>
+                                    <option value="T18">T18 - Từ 18 tuổi</option>
+                                </select>
+                                <span asp-validation-for="XepHang" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a asp-action="Index" class="btn btn-outline-secondary me-md-2">
+                            <i class="fas fa-times me-2"></i>Hủy
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save me-2"></i>Cập nhật phim
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Current Movie Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Thông tin hiện tại</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <img src="@(Model.AnhPhim ?? "/images/placeholder.jpg")" 
+                         alt="@Model.TenPhim" 
+                         class="img-fluid rounded" 
+                         style="max-height: 300px;"
+                         onerror="this.src='/images/placeholder.jpg'">
+                </div>
+                <div class="movie-info">
+                    <h6 class="card-title">@Model.TenPhim</h6>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar me-1"></i>Năm: @(Model.NamPhatHanh?.ToString() ?? "Chưa cập nhật")
+                        </small>
+                    </p>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            <i class="fas fa-user-tie me-1"></i>Đạo diễn: @(Model.DaoDien ?? "Chưa cập nhật")
+                        </small>
+                    </p>
+                    <p class="card-text">                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>Thời lượng: @(Model.ThoiLuongPhim?.ToString() ?? "Chưa cập nhật") phút
+                        </small>
+                    </p>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            <i class="fas fa-plus me-1"></i>Ngày thêm: @Model.NgayTao.ToString("dd/MM/yyyy HH:mm")
+                        </small>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-bolt me-2"></i>Thao tác nhanh</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a asp-area="" asp-controller="TapPhim" asp-action="Index" asp-route-maPhim="@Model.MaPhim" 
+                       class="btn btn-outline-success">
+                        <i class="fas fa-play-circle me-2"></i>Quản lý tập phim
+                    </a>
+                    <a asp-area="" asp-controller="Phim" asp-action="Details" asp-route-id="@Model.MaPhim" 
+                       class="btn btn-outline-info">
+                        <i class="fas fa-external-link-alt me-2"></i>Xem trang công khai
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@Model.MaPhim" 
+                       class="btn btn-outline-danger" 
+                       onclick="return confirm('Bạn có chắc chắn muốn xóa phim này?')">
+                        <i class="fas fa-trash me-2"></i>Xóa phim
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    .card {
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border: none;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .btn {
+        border-radius: 6px;
+    }
+
+    .movie-info .card-text {
+        margin-bottom: 0.5rem;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,130 @@
+@model LoginDto
+@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+}
+
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-content">
+            <div class="auth-card">
+                <div class="auth-logo">
+                    <h1><i class="fas fa-film me-2"></i>MoviesApp</h1>
+                    <p>Chào mừng bạn trở lại</p>
+                </div>
+                
+                <h2 class="auth-title">Đăng nhập</h2>
+                
+                @if (!string.IsNullOrEmpty(TempData["Error"]?.ToString()))
+                {
+                    <div class="alert-auth">
+                        <i class="fas fa-exclamation-triangle alert-icon"></i>
+                        @TempData["Error"]
+                    </div>
+                }
+                
+                @if (!string.IsNullOrEmpty(TempData["Success"]?.ToString()))
+                {
+                    <div class="alert-success">
+                        <i class="fas fa-check-circle alert-icon"></i>
+                        @TempData["Success"]
+                    </div>
+                }
+                
+                <form asp-action="Login" method="post" id="loginForm" novalidate>
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                    
+                    <div class="form-floating">
+                        <input asp-for="Email" class="form-control" placeholder="Email" autocomplete="username" />
+                        <label asp-for="Email">
+                            <i class="fas fa-envelope me-2"></i>Địa chỉ email
+                        </label>
+                        <span asp-validation-for="Email" class="field-validation-error"></span>
+                    </div>
+                    
+                    <div class="form-floating">
+                        <div class="input-group">
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Mật khẩu" id="passwordInput" autocomplete="current-password" />
+                            <span class="password-toggle" onclick="togglePassword('passwordInput', 'passwordIcon')">
+                                <i class="fas fa-eye" id="passwordIcon"></i>
+                            </span>
+                        </div>
+                        <label asp-for="Password">
+                            <i class="fas fa-lock me-2"></i>Mật khẩu
+                        </label>
+                        <span asp-validation-for="Password" class="field-validation-error"></span>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input asp-for="RememberMe" class="form-check-input" type="checkbox" />
+                        <label asp-for="RememberMe" class="form-check-label">
+                            Ghi nhớ đăng nhập
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        Đăng nhập
+                    </button>
+                    
+                    <div class="auth-links">
+                        <a href="@Url.Action("ForgotPassword", "Account")">Quên mật khẩu?</a>
+                    </div>
+                </form>
+                
+                <div class="auth-divider">
+                    <span>Hoặc</span>
+                </div>
+                
+                <div class="auth-links">
+                    <p>Chưa có tài khoản? <a href="@Url.Action("Register", "Account")">Đăng ký ngay</a></p>
+                    <p><a href="@Url.Action("Index", "Home")">← Về trang chủ</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function togglePassword(inputId, iconId) {
+            const passwordInput = document.getElementById(inputId);
+            const passwordIcon = document.getElementById(iconId);
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordIcon.classList.remove('fa-eye');
+                passwordIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                passwordIcon.classList.remove('fa-eye-slash');
+                passwordIcon.classList.add('fa-eye');
+            }
+        }
+        
+        // Form enhancement
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('loginForm');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            
+            form.addEventListener('submit', function(e) {
+                submitBtn.classList.add('btn-loading');
+                submitBtn.disabled = true;
+                
+                // Re-enable after 3 seconds in case of validation errors
+                setTimeout(function() {
+                    submitBtn.classList.remove('btn-loading');
+                    submitBtn.disabled = false;
+                }, 3000);
+            });
+            
+            // Auto-focus first input
+            document.querySelector('input[asp-for="Email"]')?.focus();
+        });
+    </script>
+}

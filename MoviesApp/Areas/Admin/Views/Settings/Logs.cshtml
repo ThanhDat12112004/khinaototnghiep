@@ -1,0 +1,137 @@
+@{
+    ViewData["Title"] = "Nhật ký Hệ thống";
+    ViewData["Breadcrumb"] = "<li class='breadcrumb-item'><a href='/Admin'>Dashboard</a></li><li class='breadcrumb-item'><a href='/Admin/Settings'>Cài đặt</a></li><li class='breadcrumb-item active'>Nhật ký</li>";
+}
+
+@model IEnumerable<dynamic>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4>Nhật ký Hệ thống</h4>
+        <p class="text-muted">Quản lý và xem các file log của hệ thống</p>
+    </div>
+</div>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        @ViewBag.Error
+    </div>
+}
+
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Danh sách Log Files</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Tên file</th>
+                            <th>Kích thước</th>
+                            <th>Lần sửa đổi cuối</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var logFile in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <i class="fas fa-file-alt me-2 text-muted"></i>
+                                    @logFile.Name
+                                </td>
+                                <td>
+                                    @{
+                                        var sizeInKB = logFile.Size / 1024.0;
+                                        var sizeInMB = sizeInKB / 1024.0;
+                                        var sizeDisplay = sizeInMB > 1 ? $"{sizeInMB:F2} MB" : $"{sizeInKB:F2} KB";
+                                    }
+                                    <span class="badge @(sizeInMB > 10 ? "bg-danger" : (sizeInMB > 5 ? "bg-warning" : "bg-info"))">
+                                        @sizeDisplay
+                                    </span>
+                                </td>
+                                <td>
+                                    @logFile.LastModified.ToString("dd/MM/yyyy HH:mm:ss")
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("DownloadLog", new { fileName = logFile.Name })" 
+                                       class="btn btn-sm btn-primary me-1" title="Tải xuống">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-info" onclick="viewLogContent('@logFile.Name')" title="Xem nội dung">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-4">
+                <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Không có file log nào</h5>
+                <p class="text-muted">Hệ thống chưa tạo ra file log nào hoặc thư mục log không tồn tại.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Log Content Modal -->
+<div class="modal fade" id="logContentModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nội dung Log File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="logFileName" class="form-label">File:</label>
+                    <input type="text" class="form-control" id="logFileName" readonly>
+                </div>
+                <div class="border p-3" style="height: 400px; overflow-y: auto; background-color: #f8f9fa; font-family: 'Courier New', monospace;">
+                    <pre id="logContent" style="margin: 0; white-space: pre-wrap; word-wrap: break-word;"></pre>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function viewLogContent(fileName) {
+            $('#logFileName').val(fileName);
+            $('#logContent').text('Đang tải nội dung...');
+            $('#logContentModal').modal('show');
+            
+            // Simulate loading log content (replace with actual API call)
+            setTimeout(function() {
+                const sampleContent = `[${new Date().toISOString()}] INFO: Application started
+[${new Date().toISOString()}] DEBUG: Database connection established
+[${new Date().toISOString()}] INFO: User authentication successful
+[${new Date().toISOString()}] WARNING: Cache miss for key: movies_list
+[${new Date().toISOString()}] ERROR: Failed to connect to external API
+[${new Date().toISOString()}] INFO: Cache refreshed successfully
+[${new Date().toISOString()}] DEBUG: Processing request: /api/movies
+[${new Date().toISOString()}] INFO: Request completed successfully
+
+--- End of log sample ---
+
+Note: Đây là nội dung mẫu. Trong thực tế, nội dung sẽ được đọc từ file log thực.`;
+                
+                $('#logContent').text(sampleContent);
+            }, 1000);
+        }
+    </script>
+}

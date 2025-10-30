@@ -1,0 +1,133 @@
+### Health Check
+GET http://localhost:5288/health
+
+### Service Health Check (from controller)
+GET http://localhost:5288/api/v1/videos/health
+
+### Upload Video API Test
+POST http://localhost:5288/api/v1/videos/upload
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="videoId"
+
+test-video-123
+--boundary
+Content-Disposition: form-data; name="videoFile"; filename="sample.mp4"
+Content-Type: video/mp4
+
+< ./sample.mp4
+--boundary--
+
+### Upload Video with Different Format
+POST http://localhost:5288/api/v1/videos/upload
+Content-Type: multipart/form-data; boundary=boundary2
+
+--boundary2
+Content-Disposition: form-data; name="videoId"
+
+test-video-mov-456
+--boundary2
+Content-Disposition: form-data; name="videoFile"; filename="sample.mov"
+Content-Type: video/quicktime
+
+< ./sample.mov
+--boundary2--
+
+### Cleanup Old Videos (older than 7 days)
+POST http://localhost:5288/api/v1/videos/cleanup?olderThanDays=7
+
+### Cleanup Old Videos (older than 1 day for testing)
+POST http://localhost:5288/api/v1/videos/cleanup?olderThanDays=1
+
+### Test Error Handling - Missing VideoId
+POST http://localhost:5288/api/v1/videos/upload
+Content-Type: multipart/form-data; boundary=boundary3
+
+--boundary3
+Content-Disposition: form-data; name="videoId"
+
+
+--boundary3
+Content-Disposition: form-data; name="videoFile"; filename="sample.mp4"
+Content-Type: video/mp4
+
+< ./sample.mp4
+--boundary3--
+
+### Test Error Handling - Unsupported Format
+POST http://localhost:5288/api/v1/videos/upload
+Content-Type: multipart/form-data; boundary=boundary4
+
+--boundary4
+Content-Disposition: form-data; name="videoId"
+
+test-unsupported-format
+--boundary4
+Content-Disposition: form-data; name="videoFile"; filename="sample.txt"
+Content-Type: text/plain
+
+This is not a video file
+--boundary4--
+
+### Upload Video Async (Fast Response)
+POST http://localhost:5288/api/v1/videos/upload-async
+Content-Type: multipart/form-data; boundary=boundary-async
+
+--boundary-async
+Content-Disposition: form-data; name="videoId"
+
+fast-test-video-123
+--boundary-async
+Content-Disposition: form-data; name="videoFile"; filename="sample.mp4"
+Content-Type: video/mp4
+
+< ./sample.mp4
+--boundary-async--
+
+### Check Video Processing Status
+GET http://localhost:5288/api/v1/videos/status/fast-test-video-123
+
+### Get Video Information
+GET http://localhost:5288/api/v1/videos/info/fast-test-video-123
+
+### Check Status for Existing Video
+GET http://localhost:5288/api/v1/videos/status/1
+
+### Get Info for Existing Video
+GET http://localhost:5288/api/v1/videos/info/1
+
+### Test Status Check for Non-existent Video
+GET http://localhost:5288/api/v1/videos/status/non-existent-video
+
+### Alternative curl commands for testing
+
+# Basic upload test
+# curl -X POST http://localhost:5288/api/v1/videos/upload \
+#   -F "videoId=test-video-curl-123" \
+#   -F "videoFile=@path/to/your/video.mp4"
+
+# Health check
+# curl -X GET http://localhost:5288/health
+
+# Service health check
+# curl -X GET http://localhost:5288/api/v1/videos/health
+
+# Cleanup old videos
+# curl -X POST "http://localhost:5288/api/v1/videos/cleanup?olderThanDays=7"
+
+# Test with mov file
+# curl -X POST http://localhost:5288/api/v1/videos/upload \
+#   -F "videoId=test-video-mov" \
+#   -F "videoFile=@path/to/your/video.mov"
+
+# Async upload test
+# curl -X POST http://localhost:5288/api/v1/videos/upload-async \
+#   -F "videoId=fast-test-video-curl-123" \
+#   -F "videoFile=@path/to/your/video.mp4"
+
+# Check video status
+# curl -X GET http://localhost:5288/api/v1/videos/status/fast-test-video-123
+
+# Get video info
+# curl -X GET http://localhost:5288/api/v1/videos/info/fast-test-video-123
