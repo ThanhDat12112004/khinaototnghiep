@@ -1,0 +1,269 @@
+@model dynamic
+
+@{
+    ViewData["Title"] = "Danh mục & Thể loại";
+}
+
+<div class="row">
+    <!-- Categories Management -->
+    <div class="col-lg-6 mb-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="mb-0"><i class="fas fa-folder me-2"></i>Quản lý Danh mục</h5>
+            </div>
+            <div class="card-body">
+                <!-- Add New Category -->
+                <form id="addCategoryForm" class="mb-4">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="newCategoryName" placeholder="Tên danh mục mới" required>
+                        <button class="btn btn-admin-primary" type="submit">
+                            <i class="fas fa-plus"></i> Thêm
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Categories List -->
+                <div class="table-responsive">
+                    <table class="table table-hover" id="categoriesTable">
+                        <thead>
+                            <tr>
+                                <th>Mã</th>
+                                <th>Tên danh mục</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var category in Model.Categories)
+                            {
+                                <tr data-id="@category.MaDM">
+                                    <td><span class="badge bg-secondary">@category.MaDM</span></td>
+                                    <td class="category-name">@category.TenDM</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning me-1" onclick="editCategory('@category.MaDM', '@category.TenDM')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteCategory('@category.MaDM')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Genres Management -->
+    <div class="col-lg-6 mb-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="mb-0"><i class="fas fa-tags me-2"></i>Quản lý Thể loại</h5>
+            </div>
+            <div class="card-body">
+                <!-- Add New Genre -->
+                <form id="addGenreForm" class="mb-4">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="newGenreName" placeholder="Tên thể loại mới" required>
+                        <button class="btn btn-admin-primary" type="submit">
+                            <i class="fas fa-plus"></i> Thêm
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Genres List -->
+                <div class="table-responsive">
+                    <table class="table table-hover" id="genresTable">
+                        <thead>
+                            <tr>
+                                <th>Mã</th>
+                                <th>Tên thể loại</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var genre in Model.Genres)
+                            {
+                                <tr data-id="@genre.MaTL">
+                                    <td><span class="badge bg-secondary">@genre.MaTL</span></td>
+                                    <td class="genre-name">@genre.TenTL</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning me-1" onclick="editGenre('@genre.MaTL', '@genre.TenTL')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteGenre('@genre.MaTL')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalTitle">Chỉnh sửa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    <input type="hidden" id="editId">
+                    <input type="hidden" id="editType">
+                    <div class="mb-3">
+                        <label for="editName" class="form-label">Tên</label>
+                        <input type="text" class="form-control" id="editName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-admin-primary" onclick="saveEdit()">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add Category
+        $('#addCategoryForm').submit(function(e) {
+            e.preventDefault();
+            const name = $('#newCategoryName').val();
+            
+            $.post('@Url.Action("CreateCategory")', { tenDanhMuc: name }, function(response) {
+                if (response.success) {
+                    // Add to table
+                    const newRow = `
+                        <tr data-id="${response.category.maDM}">
+                            <td><span class="badge bg-secondary">${response.category.maDM}</span></td>
+                            <td class="category-name">${response.category.tenDanhMuc}</td>
+                            <td>
+                                <button class="btn btn-sm btn-warning me-1" onclick="editCategory('${response.category.maDM}', '${response.category.tenDanhMuc}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteCategory('${response.category.maDM}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    $('#categoriesTable tbody').append(newRow);
+                    $('#newCategoryName').val('');
+                    alert(response.message);
+                } else {
+                    alert(response.message);
+                }
+            });
+        });
+
+        // Add Genre
+        $('#addGenreForm').submit(function(e) {
+            e.preventDefault();
+            const name = $('#newGenreName').val();
+            
+            $.post('@Url.Action("CreateGenre")', { tenTheLoai: name }, function(response) {
+                if (response.success) {
+                    // Add to table
+                    const newRow = `
+                        <tr data-id="${response.genre.maTL}">
+                            <td><span class="badge bg-secondary">${response.genre.maTL}</span></td>
+                            <td class="genre-name">${response.genre.tenTheLoai}</td>
+                            <td>
+                                <button class="btn btn-sm btn-warning me-1" onclick="editGenre('${response.genre.maTL}', '${response.genre.tenTheLoai}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteGenre('${response.genre.maTL}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    $('#genresTable tbody').append(newRow);
+                    $('#newGenreName').val('');
+                    alert(response.message);
+                } else {
+                    alert(response.message);
+                }
+            });
+        });
+
+        // Edit Category
+        function editCategory(id, name) {
+            $('#editModalTitle').text('Chỉnh sửa Danh mục');
+            $('#editId').val(id);
+            $('#editType').val('category');
+            $('#editName').val(name);
+            $('#editModal').modal('show');
+        }
+
+        // Edit Genre
+        function editGenre(id, name) {
+            $('#editModalTitle').text('Chỉnh sửa Thể loại');
+            $('#editId').val(id);
+            $('#editType').val('genre');
+            $('#editName').val(name);
+            $('#editModal').modal('show');
+        }
+
+        // Save Edit
+        function saveEdit() {
+            const id = $('#editId').val();
+            const type = $('#editType').val();
+            const name = $('#editName').val();
+            
+            const url = type === 'category' ? '@Url.Action("UpdateCategory")' : '@Url.Action("UpdateGenre")';
+            const data = type === 'category' ? { maDM: id, tenDanhMuc: name } : { maTL: id, tenTheLoai: name };
+            
+            $.post(url, data, function(response) {
+                if (response.success) {
+                    // Update table
+                    const row = $(`tr[data-id="${id}"]`);
+                    const nameCell = type === 'category' ? row.find('.category-name') : row.find('.genre-name');
+                    nameCell.text(name);
+                    
+                    $('#editModal').modal('hide');
+                    alert(response.message);
+                } else {
+                    alert(response.message);
+                }
+            });
+        }
+
+        // Delete Category
+        function deleteCategory(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa danh mục này?')) {
+                $.post('@Url.Action("DeleteCategory")', { maDM: id }, function(response) {
+                    if (response.success) {
+                        $(`#categoriesTable tr[data-id="${id}"]`).remove();
+                        alert(response.message);
+                    } else {
+                        alert(response.message);
+                    }
+                });
+            }
+        }
+
+        // Delete Genre
+        function deleteGenre(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa thể loại này?')) {
+                $.post('@Url.Action("DeleteGenre")', { maTL: id }, function(response) {
+                    if (response.success) {
+                        $(`#genresTable tr[data-id="${id}"]`).remove();
+                        alert(response.message);
+                    } else {
+                        alert(response.message);
+                    }
+                });
+            }
+        }
+    </script>
+}

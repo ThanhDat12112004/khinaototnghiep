@@ -1,0 +1,235 @@
+@{
+    ViewData["Title"] = "Sao lưu & Phục hồi";
+    ViewData["Breadcrumb"] = "<li class='breadcrumb-item'><a href='/Admin'>Dashboard</a></li><li class='breadcrumb-item'><a href='/Admin/Settings'>Cài đặt</a></li><li class='breadcrumb-item active'>Sao lưu</li>";
+}
+
+<div class="row">
+    <!-- Backup Options -->
+    <div class="col-lg-6 mb-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="mb-0"><i class="fas fa-download me-2"></i>Sao lưu dữ liệu</h5>
+            </div>
+            <div class="card-body">
+                <form id="backupForm">
+                    <div class="mb-3">
+                        <label class="form-label">Loại sao lưu</label>
+                        <select class="form-select" id="backupType">
+                            <option value="full">Sao lưu đầy đủ</option>
+                            <option value="data">Chỉ dữ liệu</option>
+                            <option value="structure">Chỉ cấu trúc</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tables cần sao lưu</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="Phim" id="table_phim" checked>
+                            <label class="form-check-label" for="table_phim">Phim</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="TapPhim" id="table_tapphim" checked>
+                            <label class="form-check-label" for="table_tapphim">Tập Phim</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="NguoiDung" id="table_nguoidung" checked>
+                            <label class="form-check-label" for="table_nguoidung">Người dùng</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="BinhLuan" id="table_binhluan" checked>
+                            <label class="form-check-label" for="table_binhluan">Bình luận</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="LichSuXem" id="table_lichsuxem">
+                            <label class="form-check-label" for="table_lichsuxem">Lịch sử xem</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Định dạng file</label>
+                        <select class="form-select" id="backupFormat">
+                            <option value="sql">SQL Script</option>
+                            <option value="json">JSON</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-admin-primary">
+                        <i class="fas fa-download me-2"></i>Tạo file sao lưu
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Restore Options -->
+    <div class="col-lg-6 mb-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="mb-0"><i class="fas fa-upload me-2"></i>Phục hồi dữ liệu</h5>
+            </div>
+            <div class="card-body">
+                <form id="restoreForm">
+                    <div class="mb-3">
+                        <label class="form-label">Chọn file sao lưu</label>
+                        <input type="file" class="form-control" id="restoreFile" accept=".sql,.json,.csv">
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Cảnh báo:</strong> Thao tác phục hồi sẽ ghi đè lên dữ liệu hiện tại. Hãy đảm bảo bạn đã sao lưu dữ liệu trước khi thực hiện.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirmRestore">
+                            <label class="form-check-label" for="confirmRestore">
+                                Tôi hiểu rủi ro và muốn tiếp tục
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning" disabled id="restoreBtn">
+                        <i class="fas fa-upload me-2"></i>Phục hồi dữ liệu
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Backup History -->
+<div class="row">
+    <div class="col-12">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Lịch sử sao lưu</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Loại sao lưu</th>
+                                <th>Kích thước</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>26/06/2025 10:30</td>
+                                <td><span class="badge bg-primary">Đầy đủ</span></td>
+                                <td>152 MB</td>
+                                <td><span class="badge bg-success">Thành công</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary me-1" onclick="downloadBackup('backup_20250626_1030.sql')">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteBackup('backup_20250626_1030.sql')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>25/06/2025 15:45</td>
+                                <td><span class="badge bg-info">Dữ liệu</span></td>
+                                <td>98 MB</td>
+                                <td><span class="badge bg-success">Thành công</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary me-1" onclick="downloadBackup('backup_20250625_1545.sql')">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteBackup('backup_20250625_1545.sql')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>24/06/2025 09:15</td>
+                                <td><span class="badge bg-primary">Đầy đủ</span></td>
+                                <td>145 MB</td>
+                                <td><span class="badge bg-danger">Lỗi</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-secondary" disabled>
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#confirmRestore').change(function() {
+                $('#restoreBtn').prop('disabled', !this.checked);
+            });
+
+            $('#backupForm').submit(function(e) {
+                e.preventDefault();
+                createBackup();
+            });
+
+            $('#restoreForm').submit(function(e) {
+                e.preventDefault();
+                if (confirm('Bạn có chắc chắn muốn phục hồi dữ liệu? Thao tác này không thể hoàn tác!')) {
+                    restoreData();
+                }
+            });
+        });
+
+        function createBackup() {
+            const backupType = $('#backupType').val();
+            const format = $('#backupFormat').val();
+            
+            // Show loading
+            const btn = $('#backupForm button[type="submit"]');
+            const originalText = btn.html();
+            btn.html('<i class="fas fa-spinner fa-spin me-2"></i>Đang tạo sao lưu...').prop('disabled', true);
+            
+            // Simulate backup process
+            setTimeout(function() {
+                btn.html(originalText).prop('disabled', false);
+                alert('Tạo file sao lưu thành công!\nFile: backup_' + new Date().toISOString().slice(0,10) + '.' + format);
+            }, 3000);
+        }
+
+        function restoreData() {
+            const file = $('#restoreFile')[0].files[0];
+            if (!file) {
+                alert('Vui lòng chọn file sao lưu');
+                return;
+            }
+            
+            const btn = $('#restoreForm button[type="submit"]');
+            const originalText = btn.html();
+            btn.html('<i class="fas fa-spinner fa-spin me-2"></i>Đang phục hồi...').prop('disabled', true);
+            
+            // Simulate restore process
+            setTimeout(function() {
+                btn.html(originalText).prop('disabled', false);
+                alert('Phục hồi dữ liệu thành công!');
+            }, 5000);
+        }
+
+        function downloadBackup(filename) {
+            alert('Tải xuống file: ' + filename + '\nTính năng đang được phát triển');
+        }
+
+        function deleteBackup(filename) {
+            if (confirm('Bạn có chắc chắn muốn xóa file sao lưu: ' + filename + '?')) {
+                alert('Đã xóa file sao lưu thành công');
+                // Reload page or remove row
+            }
+        }
+    </script>
+}
