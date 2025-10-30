@@ -1,0 +1,1187 @@
+@model MoviesApp.Models.Phim
+@{
+    ViewData["Title"] = Model?.TenPhim ?? "Chi tiết phim";
+    var selectedEpisode = ViewBag.SelectedEpisode as MoviesApp.Models.TapPhim;
+    var episodeNumber = ViewBag.EpisodeNumber as int?;
+}
+
+@section Styles {
+    <link href="~/css/movie-detail.css" rel="stylesheet" asp-append-version="true" />
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" rel="stylesheet">
+    <style>
+        .movie-detail-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: blur(10px) brightness(0.3);
+            z-index: 1;
+        }
+        
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 100%);
+            z-index: 2;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 3;
+            color: white;
+            padding: 100px 0 50px;
+        }
+        
+        .movie-poster-3d {
+            perspective: 1000px;
+            margin-bottom: 20px;
+        }
+        
+        .poster-container {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        
+        .poster-container:hover {
+            transform: rotateY(10deg) rotateX(5deg) scale(1.05);
+        }
+        
+        .movie-title-enhanced {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 15px;
+        }
+        
+        .rating-stars {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+        }
+        
+        .star {
+            color: #ffd700;
+            font-size: 1.5rem;
+            margin-right: 5px;
+            transition: transform 0.2s;
+        }
+        
+        .star:hover {
+            transform: scale(1.2);
+        }
+        
+        .action-buttons-enhanced {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+        
+        .btn-enhanced {
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-play-enhanced {
+            background: linear-gradient(45deg, #ff6b6b, #ff5722);
+            color: white;
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
+        }
+        
+        .btn-play-enhanced:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255, 107, 107, 0.6);
+        }
+        
+        .btn-wishlist-enhanced {
+            background: linear-gradient(45deg, #e91e63, #9c27b0);
+            color: white;
+            box-shadow: 0 10px 30px rgba(233, 30, 99, 0.4);
+        }
+        
+        .btn-share-enhanced {
+            background: linear-gradient(45deg, #2196f3, #21cbf3);
+            color: white;
+            box-shadow: 0 10px 30px rgba(33, 150, 243, 0.4);
+        }
+        
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 50px 0;
+        }
+        
+        .info-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .info-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .episodes-slider {
+            position: relative;
+            margin: 50px 0;
+        }
+        
+        .episode-card-enhanced {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .episode-card-enhanced:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+        
+        .episode-thumbnail {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .episode-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .episode-card-enhanced:hover .episode-overlay {
+            opacity: 1;
+        }
+        
+        .play-icon {
+            font-size: 3rem;
+            color: white;
+        }
+        
+        .comments-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 50px 0;
+        }
+        
+        .comment-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #ff6b6b;
+        }
+        
+        .rating-section {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .rating-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(#ff6b6b 0deg, #ff6b6b calc(var(--rating) * 3.6deg), #ddd calc(var(--rating) * 3.6deg));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+        
+        .rating-inner {
+            width: 80px;
+            height: 80px;
+            background: #333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .floating-elements {
+            position: fixed;
+            top: 50%;
+            right: 30px;
+            transform: translateY(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .floating-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #ff5722);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
+        }
+        
+        .floating-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(45deg, #ff6b6b, #ff5722);
+            z-index: 1001;
+            transition: width 0.3s ease;
+        }
+        
+        @@media (max-width: 768px) {
+            .movie-title-enhanced {
+                font-size: 2rem;
+            }
+            
+            .floating-elements {
+                display: none;
+            }
+            
+            .action-buttons-enhanced {
+                justify-content: center;
+            }
+        }
+    </style>
+}
+
+<!-- Progress Bar -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- Floating Action Buttons -->
+<div class="floating-elements">
+    <button class="floating-btn" id="backToTop" title="Lên đầu trang">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    <button class="floating-btn" id="toggleFullscreen" title="Toàn màn hình">
+        <i class="fas fa-expand"></i>
+    </button>
+    <button class="floating-btn" id="shareMovie" title="Chia sẻ">
+        <i class="fas fa-share-alt"></i>
+    </button>
+</div>
+
+<!-- Main Movie Detail Container -->
+<div class="movie-detail-container">
+    <!-- Hero Background -->
+    <div class="hero-background" style="background-image: url('@(Model?.AnhPhim ?? "")')"></div>
+    <div class="hero-overlay"></div>
+    
+    <!-- Hero Content -->
+    <div class="hero-content">
+        <div class="container">
+            <div class="row align-items-center">
+                <!-- Movie Poster -->
+                <div class="col-lg-4 col-md-6" data-aos="fade-right">
+                    <div class="movie-poster-3d">
+                        <div class="poster-container">
+                            @if (!string.IsNullOrEmpty(Model?.AnhPhim))
+                            {
+                                <img src="@Model.AnhPhim" alt="@Model.TenPhim" class="img-fluid">
+                            }
+                            else
+                            {
+                                <div class="poster-placeholder d-flex align-items-center justify-content-center" style="height: 500px; background: #333;">
+                                    <i class="fas fa-film fa-5x text-muted"></i>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    
+                    <!-- Rating Circle -->
+                    <div class="rating-section">
+                        @if (Model?.DiemImdb.HasValue == true)
+                        {
+                            <div class="rating-circle" style="--rating: @(Model.DiemImdb * 10)">
+                                <div class="rating-inner">
+                                    @Model.DiemImdb.Value.ToString("F1")
+                                </div>
+                            </div>
+                            <p class="text-white">Điểm IMDb</p>
+                        }
+                    </div>
+                </div>
+                
+                <!-- Movie Information -->
+                <div class="col-lg-8 col-md-6" data-aos="fade-left">
+                    <h1 class="movie-title-enhanced">@Model?.TenPhim</h1>
+                    
+                    <!-- Meta Information -->
+                    <div class="d-flex flex-wrap align-items-center mb-3">
+                        @if (Model?.NamPhatHanh.HasValue == true)
+                        {
+                            <span class="badge badge-light me-2 mb-2">
+                                <i class="fas fa-calendar"></i> @Model.NamPhatHanh
+                            </span>
+                        }
+                        @if (Model?.ThoiLuongPhim.HasValue == true)
+                        {
+                            <span class="badge badge-light me-2 mb-2">
+                                <i class="fas fa-clock"></i> @Model.ThoiLuongPhim phút
+                            </span>
+                        }
+                        @if (!string.IsNullOrEmpty(Model?.DoTuoi))
+                        {
+                            <span class="badge badge-warning me-2 mb-2">@Model.DoTuoi</span>
+                        }
+                    </div>
+                    
+                    <!-- Rating Stars -->
+                    @if (Model?.DiemImdb.HasValue == true)
+                    {
+                        <div class="rating-stars">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <i class="fas fa-star star @(i <= Model.DiemImdb / 2 ? "active" : "")"></i>
+                            }
+                            <span class="ms-2 text-white">(@Model.DiemImdb.Value.ToString("F1")/10)</span>
+                        </div>
+                    }
+                    
+                    <!-- Categories -->
+                    <div class="mb-3">
+                        @if (Model?.TheLoaiPhim != null)
+                        {
+                            <span class="badge bg-primary me-2">
+                                <i class="fas fa-tags"></i> @Model.TheLoaiPhim.TenTL
+                            </span>
+                        }
+                        @if (Model?.QuocGia != null)
+                        {
+                            <span class="badge bg-success me-2">
+                                <i class="fas fa-globe"></i> @Model.QuocGia.TenQG
+                            </span>
+                        }
+                        @if (Model?.DanhMuc != null)
+                        {
+                            <span class="badge bg-info me-2">
+                                <i class="fas fa-folder"></i> @Model.DanhMuc.TenDM
+                            </span>
+                        }
+                    </div>
+                    
+                    <!-- Description -->
+                    @if (!string.IsNullOrEmpty(Model?.MoTaPhim))
+                    {
+                        <p class="text-white mb-4" style="font-size: 1.1rem; line-height: 1.8;">
+                            @Model.MoTaPhim
+                        </p>
+                    }
+                    
+                    <!-- Action Buttons -->
+                    <div class="action-buttons-enhanced">
+                        @if (Model?.TapPhims?.Any(t => !string.IsNullOrEmpty(t.VideoUrl) || !string.IsNullOrEmpty(t.VideoId)) == true)
+                        {
+                            var firstAvailableEpisode = Model.TapPhims
+                                .Where(t => !string.IsNullOrEmpty(t.VideoUrl) || !string.IsNullOrEmpty(t.VideoId))
+                                .OrderBy(t => t.SoTapThuTu)
+                                .FirstOrDefault();
+                                
+                            <a href="@Url.Action("Player", "TapPhim", new { id = firstAvailableEpisode?.MaTap })" 
+                               class="btn-enhanced btn-play-enhanced">
+                                <i class="fas fa-play me-2"></i>
+                                @if (firstAvailableEpisode?.SoTapThuTu == 0)
+                                {
+                                    <span>Xem Trailer</span>
+                                }
+                                else
+                                {
+                                    <span>Xem Tập @firstAvailableEpisode?.SoTapThuTu</span>
+                                }
+                            </a>
+                        }
+                        else
+                        {
+                            <button class="btn-enhanced btn-play-enhanced disabled" disabled>
+                                <i class="fas fa-clock me-2"></i>
+                                <span>Chưa có video</span>
+                            </button>
+                        }
+                        
+                        <button class="btn-enhanced btn-wishlist-enhanced" data-movie-id="@(Model?.MaPhim ?? "")">
+                            <i class="far fa-heart me-2"></i>
+                            <span>Yêu thích</span>
+                        </button>
+                        
+                        <button class="btn-enhanced btn-share-enhanced">
+                            <i class="fas fa-share-alt me-2"></i>
+                            <span>Chia sẻ</span>
+                        </button>
+                        
+                        <button class="btn-enhanced" style="background: linear-gradient(45deg, #4caf50, #45a049);" onclick="downloadTrailer()">
+                            <i class="fas fa-download me-2"></i>
+                            <span>Tải về</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Sections -->
+<div class="container mt-5">
+    <!-- Information Cards -->
+    <div class="info-cards">
+        <!-- Cast & Crew Card -->
+        <div class="info-card" data-aos="fade-up">
+            <h4 class="text-white mb-3">
+                <i class="fas fa-users me-2"></i>
+                Diễn viên & Đoàn làm phim
+            </h4>
+            @if (!string.IsNullOrEmpty(Model?.DienVien))
+            {
+                <div class="mb-2">
+                    <strong class="text-warning">Diễn viên:</strong>
+                    <span class="text-white">@Model.DienVien</span>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(Model?.DaoDien))
+            {
+                <div class="mb-2">
+                    <strong class="text-warning">Đạo diễn:</strong>
+                    <span class="text-white">@Model.DaoDien</span>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(Model?.BienKich))
+            {
+                <div class="mb-2">
+                    <strong class="text-warning">Biên kịch:</strong>
+                    <span class="text-white">@Model.BienKich</span>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(Model?.NgonNgu))
+            {
+                <div class="mb-2">
+                    <strong class="text-warning">Ngôn ngữ:</strong>
+                    <span class="text-white">@Model.NgonNgu</span>
+                </div>
+            }
+        </div>
+        
+        <!-- Statistics Card -->
+        <div class="info-card" data-aos="fade-up" data-aos-delay="100">
+            <h4 class="text-white mb-3">
+                <i class="fas fa-chart-bar me-2"></i>
+                Thống kê
+            </h4>
+            <div class="row">
+                <div class="col-6 text-center mb-3">
+                    <div class="h3 text-warning">@(Model?.TapPhims?.Count() ?? 0)</div>
+                    <small class="text-white">Số tập</small>
+                </div>
+                <div class="col-6 text-center mb-3">
+                    <div class="h3 text-warning">@(Model?.DiemMetascore ?? 0)</div>
+                    <small class="text-white">Metascore</small>
+                </div>
+                <div class="col-6 text-center">
+                    <div class="h3 text-warning">@Model?.NgayTao.ToString("dd/MM")</div>
+                    <small class="text-white">Ngày thêm</small>
+                </div>
+                <div class="col-6 text-center">
+                    <div class="h3 text-warning" id="viewCount">1.2K</div>
+                    <small class="text-white">Lượt xem</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Awards Card -->
+        @if (!string.IsNullOrEmpty(Model?.GiaiThuong))
+        {
+            <div class="info-card" data-aos="fade-up" data-aos-delay="200">
+                <h4 class="text-white mb-3">
+                    <i class="fas fa-award me-2"></i>
+                    Giải thưởng
+                </h4>
+                <p class="text-white">@Model.GiaiThuong</p>
+            </div>
+        }
+    </div>
+    
+    <!-- Episodes Section -->
+    @if (Model?.TapPhims != null && Model.TapPhims.Any())
+    {
+        <div class="episodes-slider" data-aos="fade-up">
+            <h3 class="text-white mb-4">
+                <i class="fas fa-list me-2"></i>
+                Danh sách tập (@Model.TapPhims.Count() tập)
+            </h3>
+            
+            <div class="swiper episodesSwiper">
+                <div class="swiper-wrapper">
+                    @foreach (var tapPhim in Model.TapPhims.OrderBy(t => t.SoTapThuTu))
+                    {
+                        <div class="swiper-slide">
+                            <div class="episode-card-enhanced @(selectedEpisode != null && selectedEpisode.MaTap == tapPhim.MaTap ? "active" : "")">
+                                @* Click to play episode directly *@
+                                <a href="@Url.Action("Player", "TapPhim", new { id = tapPhim.MaTap })" 
+                                   class="text-decoration-none episode-play-link" 
+                                   data-episode-id="@tapPhim.MaTap"
+                                   data-episode-title="@(tapPhim.SoTapThuTu == 0 ? "Trailer" : $"Tập {tapPhim.SoTapThuTu}")">
+                                    <div class="episode-thumbnail">
+                                        @if (!string.IsNullOrEmpty(tapPhim.VideoUrl) || !string.IsNullOrEmpty(tapPhim.VideoId))
+                                        {
+                                            <img src="@(Model?.AnhPhim ?? "https://via.placeholder.com/300x200/333/fff?text=Tập+" + tapPhim.SoTapThuTu)" 
+                                                 alt="Tập @tapPhim.SoTapThuTu" class="img-fluid">
+                                            <div class="episode-status-indicator ready">
+                                                <i class="fas fa-play-circle"></i>
+                                                <span>Sẵn sàng</span>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="d-flex align-items-center justify-content-center h-100 bg-secondary">
+                                                @if (tapPhim.SoTapThuTu == 0)
+                                                {
+                                                    <i class="fas fa-exclamation-triangle fa-3x text-warning"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-clock fa-3x text-muted"></i>
+                                                }
+                                            </div>
+                                            <div class="episode-status-indicator not-ready">
+                                                <i class="fas fa-clock"></i>
+                                                <span>Chưa có video</span>
+                                            </div>
+                                        }
+                                        <div class="episode-overlay">
+                                            <div class="play-button-large">
+                                                <i class="fas fa-play"></i>
+                                            </div>
+                                            <div class="episode-hover-info">
+                                                <span class="watch-now-text">Xem ngay</span>
+                                            </div>
+                                        </div>
+                                        @if (tapPhim.SoTapThuTu == 0)
+                                        {
+                                            <div class="position-absolute top-0 end-0 m-2">
+                                                <span class="badge bg-warning text-dark">Trailer</span>
+                                            </div>
+                                        }
+                                    </div>
+                                    
+                                    <div class="p-3">
+                                        <h5 class="text-white mb-1">
+                                            @if (tapPhim.SoTapThuTu == 0)
+                                            {
+                                                <span>Trailer</span>
+                                            }
+                                            else
+                                            {
+                                                <span>Tập @tapPhim.SoTapThuTu</span>
+                                            }
+                                        </h5>
+                                        @if (!string.IsNullOrEmpty(tapPhim.TenTap))
+                                        {
+                                            <p class="text-muted small mb-1">@tapPhim.TenTap</p>
+                                        }
+                                        <div class="episode-meta">
+                                            @if (tapPhim.ThoiLuong.HasValue)
+                                            {
+                                                <small class="text-warning me-2">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    @tapPhim.ThoiLuong phút
+                                                </small>
+                                            }
+                                            @if (!string.IsNullOrEmpty(tapPhim.VideoId))
+                                            {
+                                                <small class="text-success">
+                                                    <i class="fas fa-check-circle me-1"></i>
+                                                    HD
+                                                </small>
+                                            }
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+                <div class="swiper-pagination"></div>
+            </div>
+        </div>
+    }
+    
+    <!-- Comments Section -->
+    <div class="comments-section" data-aos="fade-up">
+        <h4 class="text-white mb-4">
+            <i class="fas fa-comments me-2"></i>
+            Bình luận & Đánh giá
+        </h4>
+        
+        <!-- Add Comment Form -->
+        <div class="mb-4">
+            <div class="d-flex mb-3">
+                <div class="rating-input me-3">
+                    <span class="text-white me-2">Đánh giá:</span>
+                    <div class="star-rating">
+                        <i class="fas fa-star" data-rating="1"></i>
+                        <i class="fas fa-star" data-rating="2"></i>
+                        <i class="fas fa-star" data-rating="3"></i>
+                        <i class="fas fa-star" data-rating="4"></i>
+                        <i class="fas fa-star" data-rating="5"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-8">
+                    <textarea class="form-control" rows="3" placeholder="Viết bình luận của bạn..."></textarea>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-primary w-100">
+                        <i class="fas fa-paper-plane me-2"></i>
+                        Gửi bình luận
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sample Comments -->
+        <div class="comment-item" data-aos="fade-up">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="d-flex align-items-center">
+                    <div class="avatar me-3">
+                        <i class="fas fa-user-circle fa-2x text-warning"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-white mb-0">Nguyễn Văn A</h6>
+                        <small class="text-muted">2 giờ trước</small>
+                    </div>
+                </div>
+                <div class="rating-display">
+                    <i class="fas fa-star text-warning"></i>
+                    <i class="fas fa-star text-warning"></i>
+                    <i class="fas fa-star text-warning"></i>
+                    <i class="fas fa-star text-warning"></i>
+                    <i class="fas fa-star text-muted"></i>
+                </div>
+            </div>
+            <p class="text-white mb-0">Phim rất hay, diễn xuất tốt và kịch bản hấp dẫn. Recommend cho mọi người!</p>
+        </div>
+        
+        <div class="comment-item" data-aos="fade-up" data-aos-delay="100">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="d-flex align-items-center">
+                    <div class="avatar me-3">
+                        <i class="fas fa-user-circle fa-2x text-warning"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-white mb-0">Trần Thị B</h6>
+                        <small class="text-muted">1 ngày trước</small>
+                    </div>
+                </div>
+                <div class="rating-display">
+                    <i class="fas fa-star text-warning"></i>
+                    <i class="fas fa-star text-warning"></i>
+                    <i class="fas fa-star text-warning"></i>
+                    <i class="fas fa-star text-warning"></i>
+                    <i class="fas fa-star text-warning"></i>
+                </div>
+            </div>
+            <p class="text-white mb-0">Tuyệt vời! Hình ảnh đẹp, âm thanh sống động. Đáng xem!</p>
+        </div>
+    </div>
+    
+    <!-- Related Movies -->
+    <div class="mt-5" data-aos="fade-up">
+        <h3 class="text-white mb-4">
+            <i class="fas fa-video me-2"></i>
+            Phim liên quan
+        </h3>
+        <div class="row" id="relatedMovies">
+            <div class="col-12 text-center">
+                <div class="spinner-border text-warning" role="status">
+                    <span class="visually-hidden">Đang tải...</span>
+                </div>
+                <p class="text-white mt-2">Đang tải phim liên quan...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+    <script>
+        // Initialize AOS (Animate On Scroll)
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true
+        });
+        
+        // Initialize Swiper for episodes
+        const episodesSwiper = new Swiper('.episodesSwiper', {
+            slidesPerView: 1,
+            spaceBetween: 20,
+            loop: false,
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            breakpoints: {
+                576: {
+                    slidesPerView: 2,
+                },
+                768: {
+                    slidesPerView: 3,
+                },
+                992: {
+                    slidesPerView: 4,
+                },
+                1200: {
+                    slidesPerView: 5,
+                }
+            }
+        });
+        
+        $(document).ready(function() {
+            // Progress bar on scroll
+            $(window).scroll(function() {
+                const scroll = $(window).scrollTop();
+                const height = $(document).height() - $(window).height();
+                const scrolled = (scroll / height) * 100;
+                $('#progressBar').css('width', scrolled + '%');
+            });
+            
+            // Back to top button
+            $('#backToTop').click(function() {
+                $('html, body').animate({scrollTop: 0}, 800);
+            });
+            
+            // Fullscreen toggle
+            $('#toggleFullscreen').click(function() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                    $(this).find('i').removeClass('fa-expand').addClass('fa-compress');
+                } else {
+                    document.exitFullscreen();
+                    $(this).find('i').removeClass('fa-compress').addClass('fa-expand');
+                }
+            });
+            
+            // Share functionality
+            $('#shareMovie, .btn-share-enhanced').click(function() {
+                if (navigator.share) {
+                    navigator.share({
+                        title: '@Model?.TenPhim',
+                        text: 'Xem phim hay trên CCFilm: @Model?.TenPhim',
+                        url: window.location.href
+                    });
+                } else {
+                    copyToClipboard(window.location.href);
+                    showNotification('Đã sao chép link phim vào clipboard!', 'success');
+                }
+            });
+            
+            // Wishlist functionality
+            $('.btn-wishlist-enhanced').click(function() {
+                const btn = $(this);
+                const icon = btn.find('i');
+                const text = btn.find('span');
+                const movieId = btn.data('movie-id');
+                
+                if (icon.hasClass('far')) {
+                    icon.removeClass('far').addClass('fas');
+                    text.text('Đã thích');
+                    btn.css('background', 'linear-gradient(45deg, #e91e63, #ad1457)');
+                    addToWishlist(movieId);
+                    showNotification('Đã thêm vào danh sách yêu thích!', 'success');
+                } else {
+                    icon.removeClass('fas').addClass('far');
+                    text.text('Yêu thích');
+                    btn.css('background', 'linear-gradient(45deg, #e91e63, #9c27b0)');
+                    removeFromWishlist(movieId);
+                    showNotification('Đã xóa khỏi danh sách yêu thích!', 'info');
+                }
+            });
+            
+            // Star rating functionality
+            $('.star-rating .fa-star').click(function() {
+                const rating = $(this).data('rating');
+                $('.star-rating .fa-star').each(function(index) {
+                    if (index < rating) {
+                        $(this).removeClass('text-muted').addClass('text-warning');
+                    } else {
+                        $(this).removeClass('text-warning').addClass('text-muted');
+                    }
+                });
+            });
+            
+            // Rating stars hover effect
+            $('.rating-stars .star').hover(
+                function() {
+                    $(this).addClass('text-warning');
+                },
+                function() {
+                    if (!$(this).hasClass('active')) {
+                        $(this).removeClass('text-warning');
+                    }
+                }
+            );
+            
+            // Load related movies
+            loadRelatedMovies('@Model?.MaTL', '@Model?.MaPhim');
+            
+            // Auto-update view count
+            updateViewCount();
+            
+            // Smooth scroll for anchor links
+            $('a[href^="#"]').on('click', function(event) {
+                const target = $(this.getAttribute('href'));
+                if (target.length) {
+                    event.preventDefault();
+                    $('html, body').stop().animate({
+                        scrollTop: target.offset().top - 100
+                    }, 1000);
+                }
+            });
+            
+            // Parallax effect for hero background
+            $(window).scroll(function() {
+                const scroll = $(window).scrollTop();
+                $('.hero-background').css('transform', `translateY(${scroll * 0.5}px)`);
+            });
+            
+            // Lazy loading for images
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.remove('lazy');
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+            
+            // Initialize tooltips
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });
+        
+        // Download trailer function
+        function downloadTrailer() {
+            showNotification('Chức năng tải về đang được phát triển!', 'info');
+        }
+        
+        // Add to wishlist function
+        function addToWishlist(movieId) {
+            $.ajax({
+                url: '/api/wishlist/add',
+                method: 'POST',
+                data: { movieId: movieId },
+                success: function(response) {
+                    console.log('Added to wishlist:', movieId);
+                },
+                error: function() {
+                    showNotification('Có lỗi xảy ra khi thêm vào danh sách yêu thích!', 'error');
+                }
+            });
+        }
+        
+        // Remove from wishlist function
+        function removeFromWishlist(movieId) {
+            $.ajax({
+                url: '/api/wishlist/remove',
+                method: 'DELETE',
+                data: { movieId: movieId },
+                success: function(response) {
+                    console.log('Removed from wishlist:', movieId);
+                },
+                error: function() {
+                    showNotification('Có lỗi xảy ra khi xóa khỏi danh sách yêu thích!', 'error');
+                }
+            });
+        }
+        
+        // Load related movies function
+        function loadRelatedMovies(genreId, currentMovieId) {
+            setTimeout(() => {
+                const mockRelatedMovies = [
+                    {
+                        maPhim: 'movie1',
+                        tenPhim: 'Phim hành động 1',
+                        anhPhim: 'https://via.placeholder.com/200x300/333/fff?text=Movie+1',
+                        namPhatHanh: 2023,
+                        diemImdb: 8.5
+                    },
+                    {
+                        maPhim: 'movie2',
+                        tenPhim: 'Phim hành động 2',
+                        anhPhim: 'https://via.placeholder.com/200x300/333/fff?text=Movie+2',
+                        namPhatHanh: 2023,
+                        diemImdb: 7.8
+                    },
+                    {
+                        maPhim: 'movie3',
+                        tenPhim: 'Phim hành động 3',
+                        anhPhim: 'https://via.placeholder.com/200x300/333/fff?text=Movie+3',
+                        namPhatHanh: 2022,
+                        diemImdb: 9.1
+                    }
+                ];
+                renderRelatedMovies(mockRelatedMovies);
+            }, 1500);
+        }
+        
+        // Render related movies function
+        function renderRelatedMovies(movies) {
+            const container = $('#relatedMovies');
+            container.empty();
+            
+            if (movies.length === 0) {
+                container.html('<div class="col-12 text-center"><p class="text-white">Không có phim liên quan</p></div>');
+                return;
+            }
+            
+            movies.forEach((movie, index) => {
+                const movieCard = `
+                    <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="${index * 100}">
+                        <div class="card bg-dark text-white h-100" style="transition: transform 0.3s;">
+                            <div class="position-relative overflow-hidden">
+                                <img src="${movie.anhPhim}" class="card-img-top" alt="${movie.tenPhim}" style="height: 300px; object-fit: cover;">
+                                <div class="card-img-overlay d-flex align-items-center justify-content-center opacity-0" style="transition: opacity 0.3s; background: rgba(0,0,0,0.7);">
+                                    <a href="/Phim/Details/${movie.maPhim}" class="btn btn-primary">
+                                        <i class="fas fa-play me-2"></i>Xem phim
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">${movie.tenPhim}</h5>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">${movie.namPhatHanh}</small>
+                                    <div class="text-warning">
+                                        <i class="fas fa-star"></i>
+                                        <span>${movie.diemImdb}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.append(movieCard);
+            });
+            
+            // Add hover effects
+            $('#relatedMovies .card').hover(
+                function() {
+                    $(this).css('transform', 'translateY(-10px)');
+                    $(this).find('.card-img-overlay').removeClass('opacity-0');
+                },
+                function() {
+                    $(this).css('transform', 'translateY(0)');
+                    $(this).find('.card-img-overlay').addClass('opacity-0');
+                }
+            );
+        }
+        
+        // Update view count function
+        function updateViewCount() {
+            const counts = ['1.2K', '1.3K', '1.4K', '1.5K'];
+            let index = 0;
+            
+            setInterval(() => {
+                $('#viewCount').text(counts[index]);
+                index = (index + 1) % counts.length;
+            }, 5000);
+        }
+        
+        // Copy to clipboard function
+        function copyToClipboard(text) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text);
+            } else {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+            }
+        }
+        
+        // Enhanced notification system
+        function showNotification(message, type = 'info') {
+            const typeColors = {
+                success: '#4caf50',
+                error: '#f44336',
+                warning: '#ff9800',
+                info: '#2196f3'
+            };
+            
+            const typeIcons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            };
+            
+            const notification = $(`
+                <div class="notification" style="
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${typeColors[type]};
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 10px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                    z-index: 10000;
+                    opacity: 0;
+                    transform: translateX(100%);
+                    transition: all 0.3s ease;
+                    max-width: 300px;
+                ">
+                    <i class="fas ${typeIcons[type]} me-2"></i>
+                    <span>${message}</span>
+                    <button type="button" class="btn-close btn-close-white ms-2" aria-label="Close"></button>
+                </div>
+            `);
+            
+            $('body').append(notification);
+            
+            // Show notification
+            setTimeout(() => {
+                notification.css({
+                    opacity: 1,
+                    transform: 'translateX(0)'
+                });
+            }, 100);
+            
+            // Auto hide after 4 seconds
+            setTimeout(() => {
+                hideNotification(notification);
+            }, 4000);
+            
+            // Close button functionality
+            notification.find('.btn-close').click(() => {
+                hideNotification(notification);
+            });
+        }
+        
+        function hideNotification(notification) {
+            notification.css({
+                opacity: 0,
+                transform: 'translateX(100%)'
+            });
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }
+        
+        // Keyboard shortcuts
+        $(document).keydown(function(e) {
+            switch(e.which) {
+                case 32: // Spacebar - play/pause
+                    e.preventDefault();
+                    $('.btn-play-enhanced').click();
+                    break;
+                case 70: // F - fullscreen
+                    if (e.ctrlKey) {
+                        e.preventDefault();
+                        $('#toggleFullscreen').click();
+                    }
+                    break;
+                case 83: // S - share
+                    if (e.ctrlKey) {
+                        e.preventDefault();
+                        $('#shareMovie').click();
+                    }
+                    break;
+            }
+        });
+        
+        // Touch gestures for mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        $(document).on('touchstart', function(e) {
+            touchStartX = e.originalEvent.touches[0].clientX;
+            touchStartY = e.originalEvent.touches[0].clientY;
+        });
+        
+        $(document).on('touchend', function(e) {
+            const touchEndX = e.originalEvent.changedTouches[0].clientX;
+            const touchEndY = e.originalEvent.changedTouches[0].clientY;
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            
+            // Swipe gestures
+            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+                if (deltaX > 0) {
+                    // Swipe right - previous episode
+                    console.log('Swipe right');
+                } else {
+                    // Swipe left - next episode
+                    console.log('Swipe left');
+                }
+            }
+        });
+    </script>
+}

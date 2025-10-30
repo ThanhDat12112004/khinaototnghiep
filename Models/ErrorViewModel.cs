@@ -1,4 +1,4 @@
-namespace khinaototnghiep.Models;
+namespace MoviesApp.Models;
 
 public class ErrorViewModel
 {

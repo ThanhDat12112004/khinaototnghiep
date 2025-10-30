@@ -20,12 +20,44 @@ build_property._RazorSourceGeneratorDebug =
 build_property.EffectiveAnalysisLevelStyle = 9.0
 build_property.EnableCodeStyleSeverity = 
 
+[/Users/devduongthanhdat/Desktop/khinaototnghiep/khinaototnghiep/Views/Account/ForgotPassword.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWNjb3VudC9Gb3Jnb3RQYXNzd29yZC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/devduongthanhdat/Desktop/khinaototnghiep/khinaototnghiep/Views/Account/Login.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWNjb3VudC9Mb2dpbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/devduongthanhdat/Desktop/khinaototnghiep/khinaototnghiep/Views/Account/Profile.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWNjb3VudC9Qcm9maWxlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/devduongthanhdat/Desktop/khinaototnghiep/khinaototnghiep/Views/Account/Register.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWNjb3VudC9SZWdpc3Rlci5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/devduongthanhdat/Desktop/khinaototnghiep/khinaototnghiep/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9JbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/devduongthanhdat/Desktop/khinaototnghiep/khinaototnghiep/Views/Home/Privacy.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9Qcml2YWN5LmNzaHRtbA==
+[/Users/devduongthanhdat/Desktop/khinaototnghiep/khinaototnghiep/Views/Phim/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUGhpbS9EZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/devduongthanhdat/Desktop/khinaototnghiep/khinaototnghiep/Views/Phim/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUGhpbS9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/devduongthanhdat/Desktop/khinaototnghiep/khinaototnghiep/Views/Phim/Index_new.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUGhpbS9JbmRleF9uZXcuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/devduongthanhdat/Desktop/khinaototnghiep/khinaototnghiep/Views/Phim/Search.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUGhpbS9TZWFyY2guY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/devduongthanhdat/Desktop/khinaototnghiep/khinaototnghiep/Views/Phim/Watch.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUGhpbS9XYXRjaC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/devduongthanhdat/Desktop/khinaototnghiep/khinaototnghiep/Views/Shared/Error.cshtml]
@@ -34,6 +66,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [/Users/devduongthanhdat/Desktop/khinaototnghiep/khinaototnghiep/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/devduongthanhdat/Desktop/khinaototnghiep/khinaototnghiep/Views/TapPhim/Player.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvVGFwUGhpbS9QbGF5ZXIuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/devduongthanhdat/Desktop/khinaototnghiep/khinaototnghiep/Views/_ViewImports.cshtml]
