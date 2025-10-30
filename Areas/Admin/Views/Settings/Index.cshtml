@@ -1,0 +1,203 @@
+@model dynamic
+
+@{
+    ViewData["Title"] = "Cài đặt Hệ thống";
+}
+
+<div class="row">
+    <!-- System Information -->
+    <div class="col-lg-8 mb-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Thông tin Hệ thống</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Tên ứng dụng:</strong></td>
+                                <td>@Model.ApplicationName</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Phiên bản:</strong></td>
+                                <td><span class="badge bg-info">@Model.Version</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Môi trường:</strong></td>
+                                <td>
+                                    <span class="badge @(Model.Environment == "Production" ? "bg-success" : "bg-warning")">
+                                        @Model.Environment
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Server:</strong></td>
+                                <td>@Model.ServerName</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Framework:</strong></td>
+                                <td>@Model.Framework</td>
+                            </tr>
+                            <tr>
+                                <td><strong>OMDb API:</strong></td>
+                                <td>
+                                    <span class="badge @(Model.OMDbApiKey == "Đã cấu hình" ? "bg-success" : "bg-danger")">
+                                        @Model.OMDbApiKey
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-4 mb-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="mb-0"><i class="fas fa-tools me-2"></i>Thao tác nhanh</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <form method="post" asp-action="ClearCache">
+                        <button type="submit" class="btn btn-warning w-100">
+                            <i class="fas fa-broom me-2"></i>Xóa Cache
+                        </button>
+                    </form>
+                    <a href="@Url.Action("Database")" class="btn btn-info">
+                        <i class="fas fa-database me-2"></i>Quản lý Database
+                    </a>
+                    <a href="@Url.Action("Backup")" class="btn btn-primary">
+                        <i class="fas fa-download me-2"></i>Sao lưu & Phục hồi
+                    </a>
+                    <a href="@Url.Action("Logs")" class="btn btn-secondary">
+                        <i class="fas fa-file-alt me-2"></i>Xem Logs
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Stats -->
+<div class="row">
+    <div class="col-12">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Thống kê Hiệu suất</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="stats-card border">
+                            <div class="stats-number" id="memoryUsage">-</div>
+                            <div class="stats-label">Memory Usage (MB)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card border">
+                            <div class="stats-number" id="cpuUsage">-</div>
+                            <div class="stats-label">CPU Usage (%)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card border">
+                            <div class="stats-number" id="uptime">-</div>
+                            <div class="stats-label">Uptime (hours)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card border">
+                            <div class="stats-number" id="threads">-</div>
+                            <div class="stats-label">Active Threads</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Configuration Settings -->
+<div class="row">
+    <div class="col-12">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Cài đặt Cấu hình</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Lưu ý:</strong> Các cài đặt cấu hình cần được thực hiện thông qua file appsettings.json hoặc biến môi trường.
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-3">Connection Strings</h6>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Default Connection</span>
+                                <span class="badge bg-success">Configured</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-3">External Services</h6>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>OMDb API</span>
+                                <span class="badge @(Model.OMDbApiKey == "Đã cấu hình" ? "bg-success" : "bg-danger")">
+                                    @Model.OMDbApiKey
+                                </span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>JWT Authentication</span>
+                                <span class="badge bg-success">Enabled</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            loadPerformanceStats();
+            
+            // Refresh stats every 30 seconds
+            setInterval(loadPerformanceStats, 30000);
+        });
+
+        function loadPerformanceStats() {
+            // Simulate performance stats (replace with actual API calls)
+            const memoryUsage = Math.floor(Math.random() * 512) + 128;
+            const cpuUsage = Math.floor(Math.random() * 30) + 5;
+            const uptime = Math.floor(Math.random() * 168) + 1;
+            const threads = Math.floor(Math.random() * 50) + 10;
+            
+            $('#memoryUsage').text(memoryUsage);
+            $('#cpuUsage').text(cpuUsage);
+            $('#uptime').text(uptime);
+            $('#threads').text(threads);
+            
+            // Color code based on values
+            $('#memoryUsage').parent().removeClass('border-danger border-warning').addClass(
+                memoryUsage > 400 ? 'border-danger' : (memoryUsage > 300 ? 'border-warning' : 'border-success')
+            );
+            
+            $('#cpuUsage').parent().removeClass('border-danger border-warning').addClass(
+                cpuUsage > 80 ? 'border-danger' : (cpuUsage > 60 ? 'border-warning' : 'border-success')
+            );
+        }
+    </script>
+}
